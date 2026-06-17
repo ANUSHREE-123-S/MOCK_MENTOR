@@ -1,0 +1,706 @@
+{% extends 'base.html' %}
+{% block title %}{{ problem.title }} – MockMentor Coding{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Layout ──────────────────────────────────────────────── */
+.editor-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  height: calc(100vh - 118px);
+}
+@media(max-width:900px){ .editor-layout{grid-template-columns:1fr;height:auto;} }
+
+/* ── Left panel ──────────────────────────────────────────── */
+.problem-panel {
+  overflow-y: auto;
+  height: 100%;
+  padding-right: 4px;
+}
+.problem-panel::-webkit-scrollbar{width:4px;}
+.problem-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;}
+
+/* ── Right panel ─────────────────────────────────────────── */
+.editor-panel { display:flex; flex-direction:column; height:100%; overflow:hidden; }
+
+/* ── Code editor ─────────────────────────────────────────── */
+.editor-shell {
+  flex:1; display:flex; flex-direction:column;
+  background:#1e1e2e; border-radius:var(--radius);
+  overflow:hidden; min-height:0;
+}
+.editor-topbar {
+  background:#181825; padding:.5rem 1rem;
+  display:flex; align-items:center; gap:.75rem; flex-shrink:0;
+  border-bottom:1px solid #2a2a40;
+}
+.lang-select {
+  background:#2a2a3d; color:#cdd6f4;
+  border:1px solid #44475a; border-radius:6px;
+  padding:.25rem .6rem; font-size:.82rem; cursor:pointer;
+}
+.lang-select:focus{outline:none; border-color:#7aa2f7;}
+.editor-timer {
+  font-family:'JetBrains Mono',monospace;
+  color:#6c7086; font-size:.8rem; margin-left:auto;
+}
+.code-area {
+  flex:1; font-family:'JetBrains Mono',monospace;
+  font-size:.875rem; line-height:1.7;
+  background:#1e1e2e; color:#cdd6f4;
+  border:none; resize:none; padding:1rem;
+  tab-size:4; outline:none;
+  min-height:260px;
+}
+.code-area::placeholder{color:#45475a;}
+.editor-footer {
+  background:#181825; padding:.5rem 1rem;
+  display:flex; align-items:center; gap:.6rem; flex-shrink:0;
+  border-top:1px solid #2a2a40;
+}
+.btn-run {
+  background:#3d5a99; color:#fff;
+  border:none; border-radius:6px; padding:.3rem .9rem;
+  font-size:.82rem; font-weight:600; cursor:pointer;
+  transition:background .15s;
+}
+.btn-run:hover{background:#4a6bb5;}
+.btn-submit {
+  background:#1e8e3e; color:#fff;
+  border:none; border-radius:var(--radius-pill); padding:.35rem 1.2rem;
+  font-size:.85rem; font-weight:700; cursor:pointer;
+  transition:all .2s; margin-left:auto;
+}
+.btn-submit:hover{background:#1a7a35; transform:translateY(-1px); box-shadow:0 4px 14px rgba(30,142,62,.4);}
+.btn-submit:disabled{background:#555; transform:none; box-shadow:none; cursor:not-allowed;}
+.btn-reset{background:transparent;border:1px solid #44475a;color:#6c7086;border-radius:6px;padding:.3rem .7rem;font-size:.78rem;cursor:pointer;}
+.btn-reset:hover{border-color:#7aa2f7;color:#7aa2f7;}
+
+/* ── Output panel ────────────────────────────────────────── */
+.output-panel {
+  flex-shrink:0; background:#12121f;
+  border-radius:var(--radius); overflow:hidden;
+  margin-top:.5rem; max-height:200px;
+  border:1px solid #2a2a40;
+}
+.output-header{
+  background:#181825; padding:.4rem 1rem;
+  display:flex; align-items:center; justify-content:space-between;
+  border-bottom:1px solid #2a2a40;
+}
+.output-header span{color:#6c7086;font-size:.78rem;font-weight:600;letter-spacing:.04em;}
+.output-body{padding:.75rem 1rem; overflow-y:auto; max-height:155px;}
+.output-body::-webkit-scrollbar{width:4px;}
+.output-body::-webkit-scrollbar-thumb{background:#2a2a40;border-radius:99px;}
+.out-line{font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:1.7;white-space:pre-wrap;word-break:break-all;}
+.out-ok    {color:#a6e3a1;}
+.out-err   {color:#f38ba8;}
+.out-warn  {color:#f9e2af;}
+.out-dim   {color:#45475a;}
+.out-note  {color:#89b4fa;}
+.meta-chip {
+  background:#2a2a40; color:#6c7086;
+  font-size:.7rem; padding:.15rem .5rem; border-radius:99px;
+  font-family:'JetBrains Mono',monospace;
+}
+
+/* ── Verdict banner ──────────────────────────────────────── */
+.verdict-banner {
+  border-radius:var(--radius); padding:1rem 1.25rem;
+  margin-bottom:1rem; display:flex; align-items:center;
+  gap:1rem; flex-wrap:wrap; animation:slideDown .35s ease;
+}
+@keyframes slideDown{from{opacity:0;transform:translateY(-14px);}to{opacity:1;transform:none;}}
+.verdict-accepted  {background:#0d2b1a; border:1.5px solid #1e8e3e;}
+.verdict-partial   {background:#2b2200; border:1.5px solid #f59e0b;}
+.verdict-wrong     {background:#2b0d0d; border:1.5px solid #ef4444;}
+.verdict-runtime   {background:#1a1020; border:1.5px solid #a855f7;}
+
+.verdict-icon{font-size:2rem;flex-shrink:0;}
+.verdict-title{font-size:1.1rem;font-weight:800;}
+.verdict-accepted .verdict-title  {color:#4ade80;}
+.verdict-partial  .verdict-title  {color:#fbbf24;}
+.verdict-wrong    .verdict-title  {color:#f87171;}
+.verdict-runtime  .verdict-title  {color:#c084fc;}
+.verdict-sub{color:#94a3b8;font-size:.82rem;}
+.verdict-chips{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem;}
+.vchip{
+  font-size:.72rem; font-weight:600; padding:.2rem .65rem;
+  border-radius:99px; background:rgba(255,255,255,.08);
+  color:#94a3b8; font-family:'JetBrains Mono',monospace;
+}
+
+/* ── TC result rows ──────────────────────────────────────── */
+.tc-results-box{margin-top:.75rem;}
+.tc-row-result{
+  display:flex; align-items:center; gap:.75rem;
+  padding:.45rem .75rem; border-radius:6px; margin-bottom:.3rem;
+  font-size:.8rem; font-family:'JetBrains Mono',monospace;
+}
+.tc-pass{background:#0d2b1a; border:1px solid #166534;}
+.tc-fail{background:#2b0d0d; border:1px solid #7f1d1d;}
+.tc-icon{font-size:.9rem;flex-shrink:0;}
+.tc-label{font-weight:700;min-width:70px;}
+.tc-detail{color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
+.tc-time{margin-left:auto;color:#334155;font-size:.7rem;}
+
+/* ── Submission history table ────────────────────────────── */
+.sub-history{overflow-x:auto;}
+.sub-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+.sub-table th{
+  background:var(--bg); color:var(--text-muted);
+  font-size:.72rem; font-weight:700; text-transform:uppercase;
+  letter-spacing:.05em; padding:.55rem .9rem;
+  border-bottom:1px solid var(--border); white-space:nowrap;
+}
+.sub-table td{padding:.6rem .9rem;border-bottom:1px solid var(--border-light);vertical-align:middle;}
+.sub-table tr:hover td{background:var(--bg);}
+.sub-table tr:last-child td{border-bottom:none;}
+
+/* ── Status badges ───────────────────────────────────────── */
+.badge-accepted     {background:#dcfce7;color:#166534;border:1px solid #bbf7d0;}
+.badge-partial      {background:#fef9c3;color:#854d0e;border:1px solid #fde68a;}
+.badge-wrong        {background:#fee2e2;color:#991b1b;border:1px solid #fecaca;}
+.badge-runtime      {background:#f3e8ff;color:#6b21a8;border:1px solid #e9d5ff;}
+[data-theme="dark"] .badge-accepted {background:#052e16;color:#4ade80;border-color:#166534;}
+[data-theme="dark"] .badge-partial  {background:#1c1300;color:#fbbf24;border-color:#92400e;}
+[data-theme="dark"] .badge-wrong    {background:#1f0707;color:#f87171;border-color:#7f1d1d;}
+[data-theme="dark"] .badge-runtime  {background:#1a0933;color:#c084fc;border-color:#6b21a8;}
+
+.status-badge{
+  display:inline-flex;align-items:center;gap:.3rem;
+  padding:.18rem .65rem; border-radius:99px;
+  font-size:.72rem; font-weight:700; white-space:nowrap;
+}
+
+/* ── Problem description ─────────────────────────────────── */
+.problem-body{line-height:1.85;font-size:.9rem;color:var(--text);}
+.tc-block{
+  background:var(--bg); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:.75rem; margin:.5rem 0;
+}
+.tc-block-label{font-size:.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem;}
+.tc-val{font-family:'JetBrains Mono',monospace;font-size:.82rem;white-space:pre;color:var(--text);}
+.constraint-box{
+  background:var(--primary-light);border-left:3px solid var(--primary);
+  padding:.65rem .9rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+  font-size:.82rem; margin:.5rem 0;
+}
+.solved-check{
+  display:inline-flex;align-items:center;gap:.4rem;
+  background:#dcfce7;color:#166534;border:1px solid #bbf7d0;
+  padding:.25rem .75rem;border-radius:99px;font-size:.8rem;font-weight:700;
+}
+[data-theme="dark"] .solved-check{background:#052e16;color:#4ade80;border-color:#166534;}
+
+/* ── Confetti canvas ─────────────────────────────────────── */
+#confetti-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;}
+
+/* ── Loading spinner ─────────────────────────────────────── */
+.spin-ring {
+  display:inline-block;width:14px;height:14px;
+  border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff; border-radius:50%;
+  animation:spin .7s linear infinite; vertical-align:middle; margin-right:6px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+{% endblock %}
+
+{% block content %}
+<canvas id="confetti-canvas"></canvas>
+<div class="px-3 py-2" style="height:calc(100vh - 64px);display:flex;flex-direction:column;overflow:hidden;">
+
+  <!-- Top Bar -->
+  <div class="d-flex align-items-center gap-2 mb-2 flex-wrap" style="flex-shrink:0">
+    <a href="{{ url_for('coding.coding_home') }}" class="btn btn-sm btn-outline-secondary rounded-pill">
+      <i class="bi bi-arrow-left me-1"></i>Problems
+    </a>
+    <h6 class="fw-800 mb-0 flex-grow-1 text-truncate">{{ problem.title }}</h6>
+    <span class="status-badge
+      {% if problem.difficulty_name=='Easy'   %}badge-accepted
+      {% elif problem.difficulty_name=='Medium'%}badge-partial
+      {% else %}badge-wrong{% endif %}">
+      {% if problem.difficulty_name=='Easy' %}🟢{% elif problem.difficulty_name=='Medium' %}🟡{% else %}🔴{% endif %}
+      {{ problem.difficulty_name or 'Unknown' }}
+    </span>
+    {% if problem.company_name %}
+    <span class="status-badge" style="background:var(--bg);border:1px solid var(--border);color:var(--text)">
+      {{ problem.logo_emoji }} {{ problem.company_name }}
+    </span>
+    {% endif %}
+    {% if my_submissions and my_submissions[0].status == 'Accepted' %}
+    <span class="solved-check"><i class="bi bi-check-circle-fill"></i>Solved</span>
+    {% endif %}
+  </div>
+
+  <!-- Verdict Banner (shown after submit) -->
+  {% if last_result %}
+  {% set r = last_result %}
+  {% set vc = 'accepted' if r.status=='Accepted' else ('partial' if r.status=='Partial' else ('runtime' if r.status=='Runtime Error' else 'wrong')) %}
+  <div class="verdict-banner verdict-{{ vc }}" id="verdictBanner" style="flex-shrink:0">
+    <div class="verdict-icon">
+      {% if r.status=='Accepted' %}🎉{% elif r.status=='Partial' %}⚠️{% elif r.status=='Runtime Error' %}💥{% else %}❌{% endif %}
+    </div>
+    <div class="flex-grow-1">
+      <div class="verdict-title">{{ r.status }}</div>
+      {% if r.error_msg %}
+      <div class="verdict-sub mt-1" style="color:#f38ba8">{{ r.error_msg }}</div>
+      {% endif %}
+      <div class="verdict-chips">
+        {% if r.test_total > 0 %}
+        <span class="vchip">✅ {{ r.test_passed }}/{{ r.test_total }} tests</span>
+        {% endif %}
+        <span class="vchip">📊 {{ r.score }}%</span>
+        {% if r.runtime_ms %}<span class="vchip">⚡ {{ r.runtime_ms }}ms</span>{% endif %}
+        {% if r.memory_mb %}<span class="vchip">💾 {{ r.memory_mb }}MB</span>{% endif %}
+      </div>
+      <!-- Per test-case breakdown -->
+      {% if r.tc_results %}
+      <div class="tc-results-box">
+        {% for tc in r.tc_results %}
+        <div class="tc-row-result {% if tc.passed %}tc-pass{% else %}tc-fail{% endif %}">
+          <span class="tc-icon">{% if tc.passed %}✅{% else %}❌{% endif %}</span>
+          <span class="tc-label">Test {{ tc.index }}</span>
+          {% if not tc.passed and tc.expected %}
+          <span class="tc-detail" title="Expected: {{ tc.expected }} | Got: {{ tc.got }}">
+            Expected <code>{{ tc.expected[:30] }}</code>, got <code>{{ tc.got[:30] }}</code>
+          </span>
+          {% elif tc.passed %}
+          <span class="tc-detail" style="color:#4ade80">Output matched ✓</span>
+          {% endif %}
+          {% if tc.time_ms is defined %}<span class="tc-time">{{ tc.time_ms }}ms</span>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    <button onclick="document.getElementById('verdictBanner').remove()" style="background:none;border:none;color:#64748b;font-size:1.2rem;cursor:pointer;padding:0;align-self:flex-start">×</button>
+  </div>
+  {% endif %}
+
+  <!-- Mobile tab switcher (hidden on desktop) -->
+  <div class="d-flex d-lg-none mb-2 gap-1" id="mobileTabs">
+    <button class="btn btn-sm flex-1 rounded-pill fw-600 active" id="tabProblem"
+            style="flex:1;background:var(--primary);color:#fff;border:none"
+            onclick="switchTab('problem')">📋 Problem</button>
+    <button class="btn btn-sm flex-1 rounded-pill fw-600" id="tabEditor"
+            style="flex:1;background:var(--bg);color:var(--text);border:1px solid var(--border)"
+            onclick="switchTab('editor')">💻 Editor</button>
+  </div>
+
+  <!-- Main Editor Layout -->
+  <div class="editor-layout" id="editorLayout" style="flex:1;min-height:0;">
+
+    <!-- LEFT: Problem Description -->
+    <div class="problem-panel">
+
+      <!-- Description Card -->
+      <div class="mm-card mb-3">
+        <div class="mm-card-header" style="padding:.65rem 1rem">
+          <span class="fw-700 small">📋 Problem Statement</span>
+          {% if problem.topic_tags %}
+          <div>{% for tag in problem.topic_tags.split(',') %}
+          <span class="badge bg-primary-subtle text-primary rounded-pill me-1" style="font-size:.65rem">{{ tag.strip() }}</span>
+          {% endfor %}</div>
+          {% endif %}
+        </div>
+        <div class="p-3 problem-body">
+          {{ problem.description }}
+
+          {% if problem.input_format %}
+          <div class="mt-3 mb-1 fw-700 small">Input Format</div>
+          <p class="text-muted small">{{ problem.input_format }}</p>
+          {% endif %}
+
+          {% if problem.output_format %}
+          <div class="mt-2 mb-1 fw-700 small">Output Format</div>
+          <p class="text-muted small">{{ problem.output_format }}</p>
+          {% endif %}
+
+          {% if problem.constraints %}
+          <div class="constraint-box mt-3">
+            <div class="fw-700 small mb-1 text-primary">Constraints</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem">{{ problem.constraints }}</div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Sample Test Cases -->
+      {% if sample_tcs %}
+      <div class="mm-card mb-3">
+        <div class="mm-card-header" style="padding:.65rem 1rem">
+          <span class="fw-700 small">🧪 Sample Test Cases</span>
+          <span class="badge bg-secondary-subtle text-secondary rounded-pill" style="font-size:.65rem">{{ total_tc_count }} total hidden tests</span>
+        </div>
+        <div class="p-3">
+          {% for i, tc in enumerate(sample_tcs) %}
+          <div class="mb-3">
+            <div class="fw-600 small mb-2">Example {{ loop.index }}</div>
+            <div class="tc-block">
+              <div class="tc-block-label">Input</div>
+              <div class="tc-val">{{ tc.input_data }}</div>
+            </div>
+            <div class="tc-block">
+              <div class="tc-block-label">Expected Output</div>
+              <div class="tc-val">{{ tc.expected }}</div>
+            </div>
+            {% if problem.explanation and loop.index == 1 %}
+            <div class="mt-2">
+              <div class="tc-block-label">Explanation</div>
+              <p class="text-muted small mb-0">{{ problem.explanation }}</p>
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Submission History -->
+      {% if my_submissions %}
+      <div class="mm-card">
+        <div class="mm-card-header" style="padding:.65rem 1rem">
+          <span class="fw-700 small">📜 My Submissions</span>
+          <span class="badge bg-primary-subtle text-primary rounded-pill" style="font-size:.65rem">{{ my_submissions|length }}</span>
+        </div>
+        <div class="sub-history">
+          <table class="sub-table">
+            <thead>
+              <tr><th>#</th><th>Status</th><th>Score</th><th>Tests</th><th>Runtime</th><th>Lang</th><th>When</th></tr>
+            </thead>
+            <tbody>
+            {% for s in my_submissions %}
+            <tr>
+              <td class="text-muted small">{{ loop.index }}</td>
+              <td>
+                <span class="status-badge
+                  {% if s.status=='Accepted'     %}badge-accepted
+                  {% elif s.status=='Partial'    %}badge-partial
+                  {% elif s.status=='Runtime Error'%}badge-runtime
+                  {% else %}badge-wrong{% endif %}">
+                  {% if s.status=='Accepted' %}✅
+                  {% elif s.status=='Partial' %}⚡
+                  {% elif s.status=='Runtime Error' %}💥
+                  {% else %}❌{% endif %}
+                  {{ s.status }}
+                </span>
+              </td>
+              <td>
+                <span class="fw-700 {% if s.score>=80 %}text-success{% elif s.score>=50 %}text-warning{% else %}text-danger{% endif %}">
+                  {{ s.score }}%
+                </span>
+              </td>
+              <td class="text-muted small" style="font-family:'JetBrains Mono',monospace">
+                {% if s.test_total and s.test_total > 0 %}
+                  {{ s.test_passed }}/{{ s.test_total }}
+                {% else %}—{% endif %}
+              </td>
+              <td style="font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--text-muted)">
+                {% if s.runtime_ms %}{{ s.runtime_ms }}ms{% else %}—{% endif %}
+              </td>
+              <td><span class="badge bg-secondary-subtle text-secondary rounded-pill" style="font-size:.68rem;text-transform:capitalize">{{ s.language }}</span></td>
+              <td class="text-muted" style="font-size:.72rem;white-space:nowrap">{{ s.sub_date }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- RIGHT: Code Editor -->
+    <div class="editor-panel">
+      <form method="POST" action="{{ url_for('coding.submit_code', cq_id=problem.cq_id) }}" id="submitForm">
+
+        <!-- Editor Shell -->
+        <div class="editor-shell" style="flex:1">
+          <!-- Topbar -->
+          <div class="editor-topbar">
+            <i class="bi bi-code-square" style="color:#7aa2f7"></i>
+            <select name="language" id="langSelect" class="lang-select" onchange="changeLang(this.value)">
+              <option value="python">🐍 Python</option>
+              <option value="java">☕ Java</option>
+              <option value="cpp">⚙️ C++</option>
+              <option value="javascript">🌐 JavaScript</option>
+            </select>
+            <button type="button" class="btn-reset" onclick="resetCode()">↺ Reset</button>
+            <div class="editor-timer"><i class="bi bi-clock me-1"></i><span id="elapsedTimer">00:00</span></div>
+          </div>
+
+          <!-- Code Textarea -->
+          <textarea name="code" id="codeEditor" class="code-area"
+                    spellcheck="false" autocorrect="off" autocomplete="off"
+                    autocapitalize="off"
+                    placeholder="// Write your solution here...">{{ best_code or '' }}</textarea>
+
+          <!-- Footer -->
+          <div class="editor-footer">
+            <div class="meta-chip" id="lineCount">Lines: 1</div>
+            <div class="meta-chip" id="charCount">Chars: 0</div>
+            <button type="button" class="btn-run" id="runBtn" onclick="runCode()">
+              ▶ Run
+            </button>
+            <button type="submit" class="btn-submit" id="submitBtn">
+              <i class="bi bi-send-fill me-1"></i>Submit
+            </button>
+          </div>
+        </div>
+
+        <!-- Output Panel -->
+        <div class="output-panel" id="outputPanel">
+          <div class="output-header">
+            <span id="outputLabel">OUTPUT</span>
+            <div id="outputMeta" style="display:flex;gap:.4rem"></div>
+          </div>
+          <div class="output-body" id="outputBody">
+            <div class="out-line out-dim">// Click ▶ Run to test with sample input, or Submit to judge all test cases.</div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Starter code templates -->
+<script>
+const STARTERS = {
+  python:     `{{ starter_code['python']     | replace('`','\\`') | replace('\\n','\\n') }}`,
+  java:       `{{ starter_code['java']       | replace('`','\\`') | replace('\\n','\\n') }}`,
+  cpp:        `{{ starter_code['cpp']        | replace('`','\\`') | replace('\\n','\\n') }}`,
+  javascript: `{{ starter_code['javascript'] | replace('`','\\`') | replace('\\n','\\n') }}`,
+};
+
+const BEST_CODE = {{ (best_code or '')|tojson }};
+const BEST_LANG = {{ (best_lang or 'python')|tojson }};
+const PROBLEM_ID = {{ problem.cq_id }};
+
+const editor   = document.getElementById('codeEditor');
+const langSel  = document.getElementById('langSelect');
+
+// Init: restore saved or best code
+(function init() {
+  const saved = localStorage.getItem(`mm_code_${PROBLEM_ID}`);
+  const savedLang = localStorage.getItem(`mm_lang_${PROBLEM_ID}`) || BEST_LANG || 'python';
+  langSel.value = savedLang;
+  if (saved) {
+    editor.value = saved;
+  } else if (BEST_CODE) {
+    editor.value = BEST_CODE;
+  } else {
+    editor.value = STARTERS[savedLang] || STARTERS.python;
+  }
+  updateCounts();
+})();
+
+function changeLang(lang) {
+  localStorage.setItem(`mm_lang_${PROBLEM_ID}`, lang);
+  const current = editor.value.trim();
+  const isStarter = Object.values(STARTERS).some(s => s.trim() === current);
+  if (!current || isStarter) {
+    editor.value = STARTERS[lang] || '';
+    updateCounts();
+  }
+}
+
+function resetCode() {
+  if (!confirm('Reset to starter template? Your current code will be lost.')) return;
+  const lang = langSel.value;
+  editor.value = STARTERS[lang] || '';
+  localStorage.removeItem(`mm_code_${PROBLEM_ID}`);
+  updateCounts();
+  setOutput([{cls:'out-dim', text:'// Code reset to starter template.'}]);
+}
+
+// Tab indentation
+editor.addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const s = editor.selectionStart, end = editor.selectionEnd;
+    editor.value = editor.value.substring(0,s) + '    ' + editor.value.substring(end);
+    editor.selectionStart = editor.selectionEnd = s + 4;
+  }
+});
+
+// Auto-save to localStorage
+editor.addEventListener('input', () => {
+  localStorage.setItem(`mm_code_${PROBLEM_ID}`, editor.value);
+  updateCounts();
+});
+
+function updateCounts() {
+  const lines = editor.value.split('\n').length;
+  const chars = editor.value.length;
+  document.getElementById('lineCount').textContent = `Lines: ${lines}`;
+  document.getElementById('charCount').textContent = `Chars: ${chars}`;
+}
+
+// ── Elapsed timer ─────────────────────────────────────────────
+let elapsed = 0;
+const timerEl = document.getElementById('elapsedTimer');
+setInterval(() => {
+  elapsed++;
+  const m = String(Math.floor(elapsed/60)).padStart(2,'0');
+  const s = String(elapsed%60).padStart(2,'0');
+  timerEl.textContent = `${m}:${s}`;
+}, 1000);
+
+// ── Output helper ─────────────────────────────────────────────
+function setOutput(lines, label='OUTPUT', metaChips=[]) {
+  document.getElementById('outputLabel').textContent = label;
+  const body = document.getElementById('outputBody');
+  body.innerHTML = lines.map(l =>
+    `<div class="out-line ${l.cls||''}">${escHtml(l.text)}</div>`
+  ).join('');
+
+  const meta = document.getElementById('outputMeta');
+  meta.innerHTML = metaChips.map(c =>
+    `<span class="meta-chip">${escHtml(c)}</span>`
+  ).join('');
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Run (AJAX) ────────────────────────────────────────────────
+async function runCode() {
+  const code = editor.value.trim();
+  if (!code) { alert('Write some code first!'); return; }
+
+  const btn = document.getElementById('runBtn');
+  btn.innerHTML = '<span class="spin-ring"></span>Running…';
+  btn.disabled = true;
+
+  setOutput([{cls:'out-dim', text:'// Executing against sample test case…'}], 'RUNNING…');
+
+  try {
+    const res  = await fetch(`/coding/problem/${PROBLEM_ID}/run`, {
+      method:  'POST',
+      headers: {'Content-Type':'application/json'},
+      body:    JSON.stringify({ code, language: langSel.value }),
+    });
+    const data = await res.json();
+
+    if (data.error) {
+      setOutput([
+        {cls:'out-dim',  text:'// ⚠ Syntax / Runtime check failed:'},
+        {cls:'out-err',  text:data.error},
+      ], 'ERROR');
+    } else {
+      const lines = [];
+      if (data.sample_input) {
+        lines.push({cls:'out-dim',  text:`// Input:\n${data.sample_input}`});
+      }
+      lines.push({cls:'out-dim', text:'// Your Output:'});
+      if (data.output) {
+        lines.push({cls: data.output===data.sample_expected ? 'out-ok' : 'out-warn',
+                    text: data.output});
+      } else {
+        lines.push({cls:'out-err', text:'(no output)'});
+      }
+      if (data.sample_expected && data.output !== data.sample_expected) {
+        lines.push({cls:'out-dim',   text:`// Expected:\n${data.sample_expected}`});
+        lines.push({cls:'out-warn',  text:data.note || ''});
+      } else if (data.output === data.sample_expected) {
+        lines.push({cls:'out-note',  text: data.note || '✅ Sample passed!'});
+      }
+      setOutput(lines, 'SAMPLE OUTPUT',
+        [data.time_ms ? `⚡ ${data.time_ms}ms` : '',
+         data.mem_mb  ? `💾 ${data.mem_mb}MB`  : ''].filter(Boolean));
+    }
+  } catch(e) {
+    setOutput([{cls:'out-err', text:`// Network error: ${e.message}`}], 'ERROR');
+  } finally {
+    btn.innerHTML = '▶ Run';
+    btn.disabled = false;
+  }
+}
+
+// ── Submit ────────────────────────────────────────────────────
+document.getElementById('submitForm').addEventListener('submit', e => {
+  const code = editor.value.trim();
+  if (!code || code.length < 15) {
+    e.preventDefault();
+    alert('Please write a complete solution before submitting.');
+    return;
+  }
+  const btn = document.getElementById('submitBtn');
+  btn.innerHTML = '<span class="spin-ring"></span>Judging…';
+  btn.disabled = true;
+  setOutput([{cls:'out-dim',text:'// Submitting to judge — please wait…'}],'JUDGING…');
+});
+
+// ── Confetti on Accepted ──────────────────────────────────────
+{% if last_result and last_result.status == 'Accepted' %}
+(function confetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx    = canvas.getContext('2d');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const pieces = Array.from({length:120}, () => ({
+    x: Math.random()*canvas.width, y: Math.random()*canvas.height - canvas.height,
+    r: Math.random()*6+4,
+    d: Math.random()*120,
+    color: ['#4ade80','#60a5fa','#f9ab00','#f472b6','#a78bfa','#34d399'][Math.floor(Math.random()*6)],
+    tilt: Math.floor(Math.random()*10)-10,
+    tiltSpeed: (Math.random()*.07)+.05,
+  }));
+  let angle = 0, tick = 0;
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    angle += .01;
+    tick++;
+    pieces.forEach((p,i) => {
+      p.y += Math.cos(angle+p.d)+1+p.r/3;
+      p.x += Math.sin(angle) * 2;
+      p.tilt += p.tiltSpeed;
+      if (p.y > canvas.height+20) { p.x=Math.random()*canvas.width; p.y=-20; }
+      ctx.beginPath();
+      ctx.fillStyle = p.color;
+      ctx.ellipse(p.x, p.y, p.r, p.r*0.4, p.tilt, 0, Math.PI*2);
+      ctx.fill();
+    });
+    if (tick < 200) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+})();
+{% endif %}
+
+// ── Mobile tab switching ─────────────────────────────────
+function switchTab(tab) {
+  const problem = document.querySelector(".problem-panel");
+  const editor  = document.querySelector(".editor-panel");
+  const btnP = document.getElementById("tabProblem");
+  const btnE = document.getElementById("tabEditor");
+  if (!problem || !editor) return;
+  const isMobile = window.innerWidth < 900;
+  if (!isMobile) return;
+  if (tab === "problem") {
+    problem.style.display = "";
+    editor.style.display  = "none";
+    btnP.style.background = "var(--primary)"; btnP.style.color = "#fff"; btnP.classList.add("active");
+    btnE.style.background = "var(--bg)"; btnE.style.color = "var(--text)"; btnE.classList.remove("active");
+  } else {
+    problem.style.display = "none";
+    editor.style.display  = "";
+    btnE.style.background = "var(--primary)"; btnE.style.color = "#fff"; btnE.classList.add("active");
+    btnP.style.background = "var(--bg)"; btnP.style.color = "var(--text)"; btnP.classList.remove("active");
+  }
+}
+// On resize: reset tab display
+window.addEventListener("resize", () => {
+  if (window.innerWidth >= 900) {
+    const p = document.querySelector(".problem-panel");
+    const e = document.querySelector(".editor-panel");
+    if (p) p.style.display = "";
+    if (e) e.style.display = "";
+  }
+}, { passive: true });
+</script>
+{% endblock %}

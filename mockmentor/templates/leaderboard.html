@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Leaderboard – MockMentor{% endblock %}
+{% block content %}
+<div class="container py-3 py-md-4">
+    <div class="text-center mb-5">
+        <h2 class="fw-800 fs-4 fs-md-2">🏆 Global Leaderboard</h2>
+        <p class="text-muted">Top performers ranked by average interview score</p>
+        {% if my_rank != 'N/A' %}
+        <div class="my-rank-badge">Your Rank: <strong>#{{ my_rank }}</strong></div>
+        {% endif %}
+    </div>
+
+    <!-- Top 3 Podium -->
+    {% if leaders|length >= 3 %}
+    <div class="podium-section mb-3 mb-md-5">
+        <!-- 2nd -->
+        <div class="podium-item podium-2">
+            <div class="podium-avatar">{{ leaders[1].name[0].upper() }}</div>
+            <div class="podium-name">{{ leaders[1].name.split()[0] }}</div>
+            <div class="podium-score">{{ leaders[1].average_score }}%</div>
+            <div class="podium-block p-2">🥈</div>
+        </div>
+        <!-- 1st -->
+        <div class="podium-item podium-1">
+            <div class="crown">👑</div>
+            <div class="podium-avatar podium-avatar-gold">{{ leaders[0].name[0].upper() }}</div>
+            <div class="podium-name">{{ leaders[0].name.split()[0] }}</div>
+            <div class="podium-score">{{ leaders[0].average_score }}%</div>
+            <div class="podium-block p-2">🥇</div>
+        </div>
+        <!-- 3rd -->
+        <div class="podium-item podium-3">
+            <div class="podium-avatar">{{ leaders[2].name[0].upper() }}</div>
+            <div class="podium-name">{{ leaders[2].name.split()[0] }}</div>
+            <div class="podium-score">{{ leaders[2].average_score }}%</div>
+            <div class="podium-block p-2">🥉</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Full Rankings Table -->
+    <div class="mm-card">
+        <div class="mm-card-header">
+            <h5><i class="bi bi-list-ol me-2"></i>Full Rankings</h5>
+            <span class="text-muted small">{{ leaders|length }} candidates</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table mm-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Candidate</th>
+                        <th class="leaderboard-college">College</th>
+                        <th>Avg Score</th>
+                        <th>Interviews</th>
+                        <th class="leaderboard-bar d-none d-sm-table-cell">Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for l in leaders %}
+                <tr class="{% if l.candidate_id == current_candidate_id %}my-row{% endif %}" style="scroll-margin-top:70px">
+                    <td>
+                        <span class="rank-badge {% if l.rank_position == 1 %}rank-gold{% elif l.rank_position == 2 %}rank-silver{% elif l.rank_position == 3 %}rank-bronze{% endif %}">
+                            {% if l.rank_position == 1 %}🥇
+                            {% elif l.rank_position == 2 %}🥈
+                            {% elif l.rank_position == 3 %}🥉
+                            {% else %}#{{ l.rank_position }}{% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar-sm {% if l.candidate_id == current_candidate_id %}avatar-me{% endif %}">
+                                {{ l.name[0].upper() }}
+                            </div>
+                            <div>
+                                <div class="fw-600">{{ l.name }}
+                                    {% if l.candidate_id == current_candidate_id %}
+                                    <span class="badge bg-primary-subtle text-primary ms-1">You</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-muted leaderboard-college">{{ l.college or '—' }}</td>
+                    <td>
+                        <strong class="{% if l.average_score >= 70 %}text-success{% elif l.average_score >= 40 %}text-warning{% else %}text-danger{% endif %}">
+                            {{ l.average_score }}%
+                        </strong>
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary-subtle text-secondary rounded-pill">
+                            {{ l.total_interviews }} interview{{ 's' if l.total_interviews != 1 }}
+                        </span>
+                    </td>
+                    <td class="leaderboard-bar d-none d-sm-table-cell">
+                        <div class="progress mm-progress" style="min-width:80px">
+                            <div class="progress-bar
+                                {% if l.average_score >= 70 %}bg-success
+                                {% elif l.average_score >= 40 %}bg-warning
+                                {% else %}bg-danger{% endif %}"
+                                style="width:{{ l.average_score }}%"></div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not leaders %}
+                <tr><td colspan="6" class="text-center text-muted py-5">No data yet. Be the first!</td></tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

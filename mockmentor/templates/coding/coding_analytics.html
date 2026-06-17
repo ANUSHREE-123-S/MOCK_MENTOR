@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% block title %}Coding Analytics – MockMentor{% endblock %}
+{% block content %}
+<div class="container-fluid py-3 py-md-4 px-lg-4 px-3">
+
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h3 class="fw-800 mb-1">💻 Coding Analytics</h3>
+      <p class="text-muted mb-0">Your coding performance breakdown</p>
+    </div>
+    <a href="{{ url_for('coding.coding_home') }}" class="btn btn-primary rounded-pill">
+      <i class="bi bi-play me-1"></i>Practice
+    </a>
+  </div>
+
+  <!-- Overall Stats -->
+  {% set total    = (overall[0] or 0) if overall else 0 %}
+  {% set accepted = (overall[1] or 0) if overall else 0 %}
+  {% set wrong    = (overall[2] or 0) if overall else 0 %}
+  {% set partial  = (overall[3] or 0) if overall else 0 %}
+  {% set rerr     = (overall[4] or 0) if overall else 0 %}
+  {% set avgscore = (overall[5] or 0) if overall else 0 %}
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="stat-card stat-card-blue text-center"><div class="stat-icon mx-auto"><i class="bi bi-send"></i></div><div class="stat-value">{{ total }}</div><div class="stat-label">Submissions</div></div>
+    </div>
+    <div class="col-6 col-xl-2">
+      <div class="stat-card stat-card-green text-center"><div class="stat-icon mx-auto"><i class="bi bi-check2-all"></i></div><div class="stat-value">{{ accepted }}</div><div class="stat-label">Accepted</div></div>
+    </div>
+    <div class="col-6 col-xl-2">
+      <div class="stat-card stat-card-yellow text-center"><div class="stat-icon mx-auto"><i class="bi bi-slash-circle"></i></div><div class="stat-value">{{ partial }}</div><div class="stat-label">Partial</div></div>
+    </div>
+    <div class="col-6 col-xl-2">
+      <div class="stat-card stat-card-rose text-center"><div class="stat-icon mx-auto"><i class="bi bi-x-circle"></i></div><div class="stat-value">{{ wrong }}</div><div class="stat-label">Wrong Answer</div></div>
+    </div>
+    <div class="col-6 col-xl-2">
+      <div class="stat-card stat-card-purple text-center"><div class="stat-icon mx-auto"><i class="bi bi-bug"></i></div><div class="stat-value">{{ rerr }}</div><div class="stat-label">Runtime Error</div></div>
+    </div>
+    <div class="col-6 col-xl-2">
+      <div class="stat-card stat-card-teal text-center"><div class="stat-icon mx-auto"><i class="bi bi-graph-up"></i></div><div class="stat-value">{{ avgscore }}%</div><div class="stat-label">Avg Score</div></div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="row g-4 mb-4">
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="mm-card h-100">
+        <div class="mm-card-header"><h5><i class="bi bi-pie-chart me-2 text-primary"></i>Verdict Distribution</h5></div>
+        <div class="p-3 text-center">
+          <canvas id="verdictChart" style="max-height:200px"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="mm-card h-100">
+        <div class="mm-card-header"><h5><i class="bi bi-bar-chart me-2 text-success"></i>By Difficulty</h5></div>
+        <div class="p-3">
+          <canvas id="diffChart" style="max-height:200px"></canvas>
+          {% for d in diff_stats %}
+          <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+            <span class="badge rounded-pill
+              {% if d.difficulty_name=='Easy'   %}bg-success-subtle text-success
+              {% elif d.difficulty_name=='Medium'%}bg-warning-subtle text-warning
+              {% else %}bg-danger-subtle text-danger{% endif %}">{{ d.difficulty_name }}</span>
+            <span class="text-muted small">{{ d.attempts }} attempts · {{ d.solved }} solved</span>
+            <span class="fw-700 small">{{ d.avg_score or 0 }}%</span>
+          </div>
+          {% else %}<p class="text-muted text-center mt-3 small">No submissions yet.</p>{% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="mm-card h-100">
+        <div class="mm-card-header"><h5><i class="bi bi-trophy me-2 text-warning"></i>Coding Leaderboard</h5></div>
+        {% if leaderboard %}
+        <div class="table-responsive">
+          <table class="table mm-table align-middle mb-0">
+            <thead><tr><th>Rank</th><th>Name</th><th>Solved</th><th>Avg</th></tr></thead>
+            <tbody>
+            {% for l in leaderboard %}
+            <tr>
+              <td>{% if l.rank_pos==1%}🥇{% elif l.rank_pos==2%}🥈{% elif l.rank_pos==3%}🥉{% else%}#{{l.rank_pos}}{% endif %}</td>
+              <td><div class="fw-600 small">{{ l.name }}</div><div class="text-muted" style="font-size:.7rem">{{ l.college or '' }}</div></td>
+              <td><span class="badge bg-success-subtle text-success rounded-pill">{{ l.solved }}</span></td>
+              <td class="fw-700 small text-primary">{{ l.avg_score }}%</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty-state py-4"><i class="bi bi-trophy fs-1 text-muted"></i><p class="mt-2 small">No accepted submissions yet.</p></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Language Stats -->
+  {% if lang_stats %}
+  <div class="row g-4 mb-4">
+    <div class="col-lg-5">
+      <div class="mm-card">
+        <div class="mm-card-header"><h5><i class="bi bi-braces me-2 text-info"></i>Language Usage</h5></div>
+        <div class="p-3">
+          <canvas id="langChart" style="max-height:160px"></canvas>
+          {% for l in lang_stats %}
+          <div class="d-flex justify-content-between align-items-center mb-2 mt-2">
+            <span class="fw-600 small text-capitalize">{{ l.language }}</span>
+            <div class="d-flex gap-2">
+              <span class="badge bg-success-subtle text-success rounded-pill">{{ l.accepted }} AC</span>
+              <span class="badge bg-secondary-subtle text-secondary rounded-pill">{{ l.uses }} total</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-7">
+      <div class="mm-card h-100">
+        <div class="mm-card-header"><h5><i class="bi bi-clock-history me-2"></i>Recent Submissions</h5></div>
+        <div class="table-responsive">
+          <table class="table mm-table align-middle mb-0" style="font-size:.82rem">
+            <thead><tr><th>Problem</th><th>Status</th><th>Score</th><th class="d-none d-md-table-cell">Tests</th><th class="d-none d-md-table-cell">Runtime</th><th class="d-none d-sm-table-cell">When</th></tr></thead>
+            <tbody>
+            {% for s in recent_subs %}
+            <tr>
+              <td class="fw-600">{{ s.title[:30] }}{% if s.title|length > 30 %}…{% endif %}</td>
+              <td>
+                <span class="badge rounded-pill
+                  {% if s.status=='Accepted'      %}bg-success-subtle text-success
+                  {% elif s.status=='Partial'     %}bg-warning-subtle text-warning
+                  {% elif s.status=='Runtime Error'%}bg-info-subtle text-info
+                  {% else %}bg-danger-subtle text-danger{% endif %}" style="font-size:.7rem">
+                  {{ s.status }}
+                </span>
+              </td>
+              <td class="fw-700 {% if s.score>=80%}text-success{% elif s.score>=50%}text-warning{% else%}text-danger{% endif %}">{{ s.score }}%</td>
+              <td class="text-muted small" style="font-family:'JetBrains Mono',monospace">
+                {% if s.test_total and s.test_total > 0 %}{{ s.test_passed }}/{{ s.test_total }}{% else %}—{% endif %}
+              </td>
+              <td class="text-muted small" style="font-family:'JetBrains Mono',monospace">
+                {% if s.runtime_ms %}{{ s.runtime_ms }}ms{% else %}—{% endif %}
+              </td>
+              <td class="text-muted small">{{ s.sub_date }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const VERDICT_DATA = {
+  labels: ['Accepted','Partial','Wrong Answer','Runtime Error'],
+  values: [{{ accepted }}, {{ partial }}, {{ wrong }}, {{ rerr }}],
+  colors: ['#4ade80','#fbbf24','#f87171','#c084fc'],
+};
+if (VERDICT_DATA.values.some(v=>v>0)) {
+  new Chart(document.getElementById('verdictChart'), {
+    type:'doughnut',
+    data:{ labels: VERDICT_DATA.labels,
+      datasets:[{ data: VERDICT_DATA.values, backgroundColor: VERDICT_DATA.colors,
+        borderWidth:3, borderColor: document.documentElement.getAttribute('data-theme')==='dark'?'#1a1d27':'#fff' }] },
+    options:{ responsive:true, cutout:'65%',
+      plugins:{ legend:{ position:'bottom', labels:{ padding:12, boxWidth:12, font:{size:11} } } } }
+  });
+}
+
+const DIFF_LABELS = {{ diff_stats|map(attribute='difficulty_name')|list|tojson }};
+const DIFF_SOLVED = {{ diff_stats|map(attribute='solved')|list|tojson }};
+if (DIFF_LABELS.length) {
+  new Chart(document.getElementById('diffChart'), {
+    type:'bar',
+    data:{ labels: DIFF_LABELS,
+      datasets:[{ label:'Solved', data: DIFF_SOLVED,
+        backgroundColor:['#4ade80','#fbbf24','#f87171'], borderRadius:6, borderSkipped:false }] },
+    options:{ responsive:true, plugins:{legend:{display:false}},
+      scales:{ y:{beginAtZero:true, grid:{color:'rgba(0,0,0,0.04)'}}, x:{grid:{display:false}} } }
+  });
+}
+
+const LANG_LABELS = {{ lang_stats|map(attribute='language')|list|tojson }};
+const LANG_VALS   = {{ lang_stats|map(attribute='uses')|list|tojson }};
+const langCtx = document.getElementById('langChart');
+if (langCtx && LANG_LABELS.length) {
+  new Chart(langCtx, {
+    type:'bar',
+    data:{ labels: LANG_LABELS,
+      datasets:[{ label:'Submissions', data: LANG_VALS,
+        backgroundColor:['#60a5fa','#f97316','#a78bfa','#34d399'], borderRadius:6 }] },
+    options:{ indexAxis:'y', responsive:true,
+      plugins:{legend:{display:false}},
+      scales:{ x:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.04)'}}, y:{grid:{display:false}} } }
+  });
+}
+</script>
+{% endblock %}

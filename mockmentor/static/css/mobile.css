@@ -1,0 +1,647 @@
+/* ============================================================
+   MockMentor – Mobile Responsive CSS  (mobile.css)
+   Loaded AFTER style.css via base.html extra_css block
+   Covers: xs (≤575px), sm (576–767px), md (768–991px), lg (992–1199px)
+   ============================================================ */
+
+/* ── 1. CSS Variables for touch targets & spacing ──────────── */
+:root {
+  --touch-min:   44px;   /* WCAG 2.5.5 minimum tap target */
+  --mobile-px:   1rem;   /* horizontal page padding on mobile */
+  --nav-h-mob:   56px;   /* collapsed navbar height */
+}
+
+/* ── 2. Base resets that improve all screen sizes ───────────── */
+*,*::before,*::after { -webkit-tap-highlight-color: transparent; }
+
+img, canvas, svg { max-width: 100%; height: auto; }
+
+/* Prevent horizontal scroll on any page */
+html, body { overflow-x: hidden; max-width: 100vw; }
+
+/* Smooth scrolling for anchor links */
+html { scroll-behavior: smooth; }
+
+/* ── 3. Navbar – full mobile menu ────────────────────────────── */
+/* Ensure brand stays on one line */
+.navbar-brand .brand-text { font-size: 1.1rem; }
+
+/* Hamburger button – bigger tap target */
+.navbar-toggler {
+  min-width:  var(--touch-min);
+  min-height: var(--touch-min);
+  padding:    .4rem .6rem;
+  border-color: var(--border);
+}
+.navbar-toggler:focus { box-shadow: 0 0 0 2px rgba(26,115,232,.25); }
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%231a73e8' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+[data-theme="dark"] .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%23e2e8f0' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Expanded nav on mobile */
+@media (max-width: 991.98px) {
+  .mm-navbar .navbar-collapse {
+    background: var(--bg-nav);
+    border-top: 1px solid var(--border);
+    margin-top: .5rem;
+    padding: .75rem 1rem 1rem;
+    border-radius: 0 0 var(--radius) var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .mm-navbar .navbar-nav {
+    gap: .25rem !important;
+    align-items: flex-start !important;
+  }
+  .mm-navbar .nav-link {
+    padding: .65rem .75rem;
+    min-height: var(--touch-min);
+    display: flex;
+    align-items: center;
+    border-radius: var(--radius-sm);
+    width: 100%;
+  }
+  .mm-navbar .nav-link:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+  /* Dropdown inside collapsed nav */
+  .mm-navbar .dropdown-menu {
+    position: static !important;
+    transform: none !important;
+    box-shadow: none;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    margin: .25rem 0 0 1rem;
+    width: calc(100% - 1rem);
+  }
+  .mm-navbar .dropdown-item {
+    min-height: var(--touch-min);
+    display: flex;
+    align-items: center;
+    padding: .5rem .75rem;
+  }
+  /* Dark toggle full-width on mobile */
+  .dark-toggle {
+    width: 100%;
+    border-radius: var(--radius-sm) !important;
+    justify-content: flex-start;
+    padding: .65rem .75rem;
+    gap: .5rem;
+  }
+  .dark-toggle::after { content: 'Toggle Dark Mode'; font-size: .875rem; font-weight: 500; }
+
+  /* Bottom nav bar on mobile for quick access */
+  .mm-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    background: var(--bg-nav);
+    border-top: 1px solid var(--border);
+    z-index: 999;
+    box-shadow: 0 -2px 12px rgba(0,0,0,.1);
+  }
+  .mm-main { padding-bottom: 68px; } /* space for bottom nav */
+}
+@media (min-width: 992px) {
+  .mm-bottom-nav { display: none; }
+}
+.mm-bottom-nav { display: none; } /* hidden until media query activates */
+
+.mm-bottom-nav a {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: .65rem;
+  font-weight: 600;
+  transition: color .2s;
+  padding: 4px 0;
+}
+.mm-bottom-nav a i { font-size: 1.25rem; }
+.mm-bottom-nav a.active,
+.mm-bottom-nav a:hover { color: var(--primary); }
+.mm-bottom-nav a.active i { transform: scale(1.1); }
+
+/* ── 4. Flash messages – mobile width ───────────────────────── */
+@media (max-width: 575.98px) {
+  .flash-container {
+    left: 8px;
+    right: 8px;
+    max-width: calc(100% - 16px);
+    min-width: unset;
+  }
+  .mm-alert { font-size: .85rem; }
+}
+
+/* ── 5. Page padding – tighter on small screens ─────────────── */
+@media (max-width: 575.98px) {
+  .container-fluid { padding-left: var(--mobile-px) !important; padding-right: var(--mobile-px) !important; }
+  .px-lg-4.px-3 { padding-left: var(--mobile-px) !important; padding-right: var(--mobile-px) !important; }
+}
+
+/* ── 6. Welcome Banner – stack on mobile ────────────────────── */
+@media (max-width: 767.98px) {
+  .welcome-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.25rem;
+    gap: .875rem;
+  }
+  .welcome-banner h3 { font-size: 1.2rem; }
+  .welcome-banner .d-flex { width: 100%; }
+  .welcome-banner .btn { flex: 1; text-align: center; font-size: .85rem; }
+}
+
+/* ── 7. Stat Cards – proper grid on every breakpoint ─────────── */
+/* xs: 2 per row, sm: 3 per row, md: 3, lg+: 6 */
+@media (max-width: 575.98px) {
+  .stat-card { padding: 1rem .75rem; }
+  .stat-value { font-size: 1.4rem; }
+  .stat-label { font-size: .7rem; }
+  .stat-icon  { width: 38px; height: 38px; font-size: 1.1rem; }
+}
+
+/* ── 8. mm-card – ensure full width on mobile ───────────────── */
+@media (max-width: 575.98px) {
+  .mm-card { border-radius: var(--radius-sm); }
+  .mm-card-header { padding: .75rem 1rem; flex-wrap: wrap; gap: .5rem; }
+  .mm-card-header h5 { font-size: .875rem; }
+}
+
+/* ── 9. Tables – horizontal scroll on mobile ────────────────── */
+.table-responsive {
+  -webkit-overflow-scrolling: touch;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+@media (max-width: 767.98px) {
+  .mm-table thead th { font-size: .7rem; padding: .5rem .6rem; white-space: nowrap; }
+  .mm-table tbody td { font-size: .82rem; padding: .55rem .6rem; }
+  /* Hide less critical columns on xs */
+  .mm-table .hide-xs { display: none; }
+}
+
+/* ── 10. Quick Action Cards – 2 col on mobile ───────────────── */
+@media (max-width: 575.98px) {
+  .quick-action-card { padding: .875rem; gap: .6rem; }
+  .qa-icon { width: 40px; height: 40px; font-size: 1rem; }
+  .qa-body .fw-700 { font-size: .82rem; }
+}
+
+/* ── 11. Dashboard Recommendation Scroll ─────────────────────── */
+@media (max-width: 767.98px) {
+  .rec-scroll { max-height: 260px; }
+  .rec-card-v2 { padding: .65rem 1rem; }
+  .rec-icon-v2 { font-size: 1.25rem; }
+}
+
+/* ── 12. Timeline – tighter on mobile ──────────────────────────── */
+@media (max-width: 575.98px) {
+  .timeline-item { gap: .6rem; padding: .6rem 0; }
+  .timeline-dot { width: 30px; height: 30px; font-size: .75rem; }
+  .timeline-content .fw-600 { font-size: .82rem; }
+}
+
+/* ── 13. Company Readiness Items ─────────────────────────────── */
+@media (max-width: 575.98px) {
+  .company-readiness-item { padding: .4rem 0; }
+  .company-logo-sm { font-size: 1rem; }
+}
+
+/* ── 14. Auth pages – full screen on mobile ──────────────────── */
+@media (max-width: 575.98px) {
+  .auth-wrapper { padding: 1rem .75rem; align-items: flex-start; padding-top: 2rem; }
+  .auth-card {
+    padding: 1.5rem 1.25rem;
+    border-radius: var(--radius-sm);
+    max-width: 100%;
+  }
+  .auth-card-wide { max-width: 100%; }
+  .auth-title { font-size: 1.35rem; }
+  .auth-logo { font-size: 2.25rem; }
+  .mm-input-group { font-size: .9rem; }
+  .mm-input-group .form-control { font-size: .9rem; }
+}
+@media (max-width: 767.98px) {
+  .auth-card { max-width: 100%; }
+  .auth-card-wide { max-width: 100%; }
+}
+
+/* ── 15. Landing page hero – scale down ─────────────────────── */
+@media (max-width: 767.98px) {
+  .hero-title { font-size: 1.9rem; letter-spacing: -.02em; }
+  .hero-subtitle { font-size: .95rem; }
+  .hero-stats { gap: .875rem; flex-wrap: wrap; }
+  .hero-badge { font-size: .78rem; }
+  .hero-card-grid { grid-template-columns: 1fr 1fr; gap: .6rem; }
+  .hero-card { padding: 1rem; }
+  .hero-card-offset { margin-top: 0; }
+  .min-vh-80 { min-height: auto; padding: 2rem 0; }
+  .section-title { font-size: 1.5rem; }
+  .cta-card { padding: 2rem 1.25rem; }
+  .cta-card h2 { font-size: 1.4rem; }
+}
+@media (max-width: 575.98px) {
+  .hero-title { font-size: 1.55rem; }
+  .hero-card-grid { grid-template-columns: 1fr 1fr; }
+  .hero-card h6 { font-size: .8rem; }
+  .hero-card p { font-size: .72rem; }
+  .stat-item strong { font-size: 1.15rem; }
+}
+
+/* ── 16. Feature cards ───────────────────────────────────────── */
+@media (max-width: 575.98px) {
+  .feature-card { padding: 1.25rem; }
+  .feature-icon { width: 44px; height: 44px; font-size: 1.2rem; }
+}
+
+/* ── 17. Analytics page – chart sizing ──────────────────────── */
+@media (max-width: 767.98px) {
+  /* Stack charts to full width */
+  .col-lg-7, .col-lg-5, .col-lg-8, .col-lg-4 { flex: 0 0 100%; max-width: 100%; }
+}
+/* Chart.js responsive – let canvas be fluid */
+canvas {
+  max-width: 100% !important;
+  touch-action: pan-x pan-y;
+}
+@media (max-width: 575.98px) {
+  /* Reduce chart height on very small screens so they don't dominate */
+  canvas[id$="Chart"] { max-height: 220px !important; }
+  canvas[id="topicPieChart"] { max-width: 220px !important; }
+}
+
+/* ── 18. Accuracy progress bars – label wrapping ─────────────── */
+@media (max-width: 575.98px) {
+  .mm-card .small.fw-600 { font-size: .72rem; }
+}
+
+/* ── 19. Leaderboard podium – tight on mobile ────────────────── */
+@media (max-width: 575.98px) {
+  .podium-section { gap: .3rem; padding: .5rem 0; }
+  .podium-avatar  { width: 44px; height: 44px; font-size: 1rem; }
+  .podium-avatar-gold { width: 54px; height: 54px; font-size: 1.2rem; }
+  .podium-name  { font-size: .78rem; }
+  .podium-score { font-size: .72rem; }
+  .crown { font-size: 1.1rem; }
+  .podium-1 .podium-block { min-height: 60px; }
+  .podium-2 .podium-block { min-height: 40px; }
+  .podium-3 .podium-block { min-height: 30px; }
+  .my-rank-badge { font-size: .875rem; padding: .3rem 1rem; }
+}
+
+/* Leaderboard table – hide college & progress bar on xs */
+@media (max-width: 575.98px) {
+  .leaderboard-college, .leaderboard-bar { display: none; }
+  .rank-badge { min-width: 32px; }
+}
+
+/* ── 20. Interview / take_interview page ─────────────────────── */
+@media (max-width: 767.98px) {
+  .interview-header { padding: 0 var(--mobile-px); }
+  .question-card { padding: 1.25rem; }
+  .question-text { font-size: 1rem; }
+  .question-number-badge { font-size: .68rem; }
+  .timer-badge { font-size: .95rem; padding: .3rem .75rem; }
+  .mm-textarea { min-height: 140px; }
+  .tip-box { font-size: .82rem; padding: .6rem .875rem; }
+}
+
+/* ── 21. Start Interview – topic grid mobile ─────────────────── */
+@media (max-width: 575.98px) {
+  .topic-grid { gap: .35rem; }
+  .topic-option { padding: .4rem .75rem; font-size: .8rem; }
+  .diff-option { padding: .6rem 1rem; font-size: .875rem; }
+  .info-row { font-size: .82rem; }
+}
+
+/* ── 22. Interview Report ────────────────────────────────────── */
+@media (max-width: 767.98px) {
+  .score-circle { width: 100px; height: 100px; border-width: 5px; }
+  .score-number { font-size: 1.8rem; }
+  .response-item { padding: 1rem; }
+  .response-header { flex-wrap: wrap; gap: .5rem; }
+  .response-score { align-self: flex-start; }
+  .sub-score-value { font-size: 1.2rem; }
+  .feedback-box { font-size: .875rem; }
+}
+
+/* ── 23. Coding Home – problem table ────────────────────────── */
+@media (max-width: 767.98px) {
+  /* Hide acceptance column on mobile */
+  .coding-acceptance-col { display: none; }
+  .company-chip { font-size: .72rem; padding: .15rem .5rem; }
+}
+
+/* ── 24. Coding Problem Editor – full mobile layout ─────────── */
+/* The editor uses a fixed inline style; we override with mobile overrides */
+@media (max-width: 899px) {
+  /* Already handled by the template's own media query */
+  .code-area { min-height: 200px !important; font-size: .8rem !important; }
+  .editor-topbar { flex-wrap: wrap; gap: .5rem; padding: .4rem .75rem; }
+  .editor-timer { margin-left: 0; }
+  .editor-footer { flex-wrap: wrap; gap: .4rem; }
+  .btn-submit { margin-left: 0; flex: 1; }
+  .output-panel { max-height: 160px; }
+  .output-body  { max-height: 120px; }
+}
+@media (max-width: 575.98px) {
+  .code-area { font-size: .75rem !important; line-height: 1.55 !important; }
+  .problem-body { font-size: .875rem; }
+  .tc-block { padding: .5rem; }
+  .tc-val { font-size: .75rem; }
+  .constraint-box { font-size: .78rem; padding: .5rem .75rem; }
+  .sub-table th, .sub-table td { font-size: .72rem; padding: .4rem .5rem; }
+  /* Verdict banner */
+  .verdict-banner { padding: .875rem 1rem; gap: .75rem; }
+  .verdict-icon { font-size: 1.5rem; }
+  .verdict-title { font-size: .95rem; }
+  .vchip { font-size: .65rem; padding: .15rem .5rem; }
+  .tc-row-result { padding: .35rem .6rem; font-size: .72rem; }
+}
+
+/* ── 25. Company pages ───────────────────────────────────────── */
+@media (max-width: 767.98px) {
+  .company-card { padding: 1.25rem; }
+  .company-emoji { font-size: 2rem; }
+  .company-name  { font-size: 1rem; }
+  .company-meta  { gap: .3rem .75rem; }
+  .company-meta-item { font-size: .75rem; }
+  .company-hero { flex-direction: column; gap: 1rem; padding: 1.25rem; }
+  .company-hero-icon { font-size: 2.5rem; }
+  .round-item { gap: .6rem; padding: .65rem 0; }
+  .round-number { width: 28px; height: 28px; font-size: .78rem; }
+  .exp-card { padding: .875rem; }
+  .exp-detail-card { padding: .875rem; }
+}
+@media (max-width: 575.98px) {
+  .company-card-wrap { padding-left: .5rem; padding-right: .5rem; }
+}
+
+/* ── 26. Resume Analyzer ─────────────────────────────────────── */
+@media (max-width: 767.98px) {
+  .resume-drop-zone { padding: 1.5rem 1rem; }
+  .resume-drop-zone h5 { font-size: 1rem; }
+  .resume-score-circle { width: 100px; height: 100px; }
+  .skill-tag { font-size: .72rem; padding: .2rem .6rem; }
+  .analysis-pre { font-size: .78rem; padding: .75rem; }
+  .rec-topic-item { gap: .6rem; padding: .6rem 0; }
+}
+
+/* ── 27. Admin pages ─────────────────────────────────────────── */
+@media (max-width: 767.98px) {
+  .admin-stat-cards .stat-card { padding: 1rem; }
+  .admin-stat-cards .stat-value { font-size: 1.4rem; }
+}
+@media (max-width: 575.98px) {
+  /* Question table: hide sample answer column */
+  .question-sample-col { display: none; }
+  /* Action buttons – icon only */
+  .btn-admin-action span { display: none; }
+}
+
+/* ── 28. Profile page ────────────────────────────────────────── */
+@media (max-width: 575.98px) {
+  .profile-avatar { width: 60px; height: 60px; font-size: 1.5rem; }
+}
+
+/* ── 29. Coding Analytics ────────────────────────────────────── */
+@media (max-width: 767.98px) {
+  .coding-mini-val { font-size: 1.3rem; }
+  .coding-mini-label { font-size: .7rem; }
+}
+
+/* ── 30. Forms – better mobile UX ───────────────────────────── */
+@media (max-width: 575.98px) {
+  .form-control, .form-select {
+    font-size: 1rem;  /* prevents iOS zoom on focus */
+    min-height: var(--touch-min);
+  }
+  .input-group-text {
+    min-height: var(--touch-min);
+    padding: .5rem .875rem;
+  }
+  .btn-lg { font-size: .95rem; padding: .65rem 1.25rem; }
+  label.form-label { font-size: .875rem; }
+}
+
+/* ── 31. Buttons – minimum tap target everywhere ─────────────── */
+@media (max-width: 767.98px) {
+  .btn { min-height: var(--touch-min); }
+  .btn-sm { min-height: 36px; }
+  .btn-xs { min-height: 30px; }
+}
+
+/* ── 32. Score bars – readable on tiny screens ───────────────── */
+@media (max-width: 575.98px) {
+  .score-bar-wrap { min-width: 80px; }
+  .score-label { font-size: .72rem; }
+}
+
+/* ── 33. Topic badges – wrap gracefully ──────────────────────── */
+.topic-badge { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+@media (max-width: 575.98px) {
+  .topic-badge { max-width: 90px; font-size: .7rem; padding: .15rem .5rem; }
+}
+
+/* ── 34. Charts inside cards – min-height prevents collapse ──── */
+.mm-card canvas { min-height: 140px; }
+
+/* ── 35. Scrollbar polish on mobile ─────────────────────────── */
+@media (max-width: 767.98px) {
+  ::-webkit-scrollbar { width: 3px; height: 3px; }
+}
+
+/* ── 36. Tablet breakpoint (768-991px) ───────────────────────── */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .stat-value { font-size: 1.7rem; }
+  .hero-title { font-size: 2.4rem; }
+  .welcome-banner { padding: 1.25rem 1.5rem; }
+  .mm-card-header h5 { font-size: .9rem; }
+  .auth-card { max-width: 520px; }
+  canvas[id$="Chart"] { max-height: 240px !important; }
+}
+
+/* ── 37. Dark mode – better contrast on mobile ───────────────── */
+[data-theme="dark"] .mm-navbar .navbar-collapse {
+  background: var(--bg-nav);
+  border-color: var(--border);
+}
+[data-theme="dark"] .mm-bottom-nav {
+  background: var(--bg-nav);
+  border-color: var(--border);
+}
+[data-theme="dark"] .welcome-banner .btn-outline-light {
+  border-color: rgba(255,255,255,.35);
+  color: rgba(255,255,255,.85);
+}
+[data-theme="dark"] .mm-bottom-nav a { color: var(--text-muted); }
+[data-theme="dark"] .mm-bottom-nav a.active,
+[data-theme="dark"] .mm-bottom-nav a:hover { color: var(--primary); }
+
+/* ── 38. Print / accessibility ───────────────────────────────── */
+@media print {
+  .mm-navbar, .mm-bottom-nav, .flash-container, .dark-toggle { display: none !important; }
+  .mm-main { padding-bottom: 0 !important; }
+}
+
+/* ── 39. Utility helpers (mobile only) ───────────────────────── */
+@media (max-width: 575.98px) {
+  .d-xs-none { display: none !important; }
+  .text-xs-center { text-align: center !important; }
+  .gap-xs-1 { gap: .25rem !important; }
+  .fs-xs-sm { font-size: .82rem !important; }
+}
+@media (max-width: 767.98px) {
+  .d-mob-none { display: none !important; }
+}
+
+/* ── 40. Prevent overflow in company/coding tables on tablet ─── */
+@media (max-width: 991.98px) {
+  .sub-history  { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .sub-table    { min-width: 520px; }
+}
+
+/* ── 41. Admin pages – stat card row ─────────────────────────── */
+.admin-stat-cards .col-sm-6 { flex: 0 0 50%; max-width: 50%; }
+@media (max-width: 575.98px) {
+  .admin-stat-cards .stat-value { font-size: 1.35rem; }
+  .admin-stat-cards .stat-card  { padding: .875rem .75rem; }
+}
+
+/* ── 42. Admin questions table – hide sample col on xs ────────── */
+@media (max-width: 767.98px) {
+  .question-sample-col { display: none !important; }
+  .btn-admin-action span { display: none; }
+  .btn-admin-action { padding: .25rem .5rem; }
+}
+
+/* ── 43. Admin candidates – hide columns ─────────────────────── */
+@media (max-width: 575.98px) {
+  .admin-candidates-email { display: none !important; }
+}
+
+/* ── 44. Coding problem – mobile tab panel heights ─────────────── */
+@media (max-width: 899px) {
+  .problem-panel {
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+  .editor-panel { min-height: 500px; }
+  .editor-shell { min-height: 300px; }
+}
+
+/* ── 45. Company hero – stack on xs ─────────────────────────────── */
+@media (max-width: 575.98px) {
+  .company-hero { padding: 1rem; gap: .75rem; }
+  .company-hero-body h2 { font-size: 1.3rem; }
+  .company-hero-body p  { font-size: .85rem; }
+}
+
+/* ── 46. Resume drop zone – compact on mobile ─────────────────── */
+@media (max-width: 575.98px) {
+  .resume-drop-zone { padding: 1.25rem .875rem; }
+  .resume-drop-zone h5 { font-size: .95rem; }
+  .resume-drop-zone p.text-muted { font-size: .8rem; }
+}
+
+/* ── 47. Score circle card – center on mobile ──────────────────── */
+@media (max-width: 767.98px) {
+  .score-circle-card { padding: 1rem .75rem; }
+  .score-circle { width: 90px; height: 90px; border-width: 4px; }
+  .score-number { font-size: 1.6rem; }
+  .sub-score-value { font-size: 1.1rem; }
+}
+
+/* ── 48. Welcome banner – always readable ─────────────────────── */
+@media (max-width: 575.98px) {
+  .welcome-banner h3 { font-size: 1.1rem; line-height: 1.3; }
+  .welcome-banner p  { font-size: .82rem; }
+  .welcome-banner .btn { font-size: .8rem; padding: .4rem .875rem; }
+}
+
+/* ── 49. Index page CTA buttons ─────────────────────────────────── */
+@media (max-width: 575.98px) {
+  .w-sm-auto { width: 100% !important; text-align: center; }
+  .hero-section .container { padding-left: 1.25rem; padding-right: 1.25rem; }
+}
+
+/* ── 50. Leaderboard – compact podium on xs ────────────────────── */
+@media (max-width: 400px) {
+  .podium-avatar  { width: 38px; height: 38px; font-size: .875rem; }
+  .podium-avatar-gold { width: 48px; height: 48px; font-size: 1.1rem; }
+  .podium-name { font-size: .72rem; }
+}
+
+/* ── 51. Bottom nav – safe area for iPhone notch ──────────────── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .mm-bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+    height: calc(60px + env(safe-area-inset-bottom));
+  }
+  .mm-main { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
+}
+
+/* ── 52. Verdict banner – scrollable on xs ─────────────────────── */
+@media (max-width: 575.98px) {
+  .verdict-banner { max-height: 55vh; overflow-y: auto; }
+  .tc-results-box { max-height: 180px; overflow-y: auto; }
+}
+
+/* ── 53. Coding editor lang select ──────────────────────────────── */
+@media (max-width: 575.98px) {
+  .lang-select { width: 110px !important; font-size: .78rem; }
+  .editor-topbar { padding: .35rem .6rem; gap: .4rem; }
+  .btn-run, .btn-reset { font-size: .78rem; padding: .25rem .6rem; }
+  .btn-submit { font-size: .8rem; padding: .3rem .875rem; }
+}
+
+/* ── 54. mm-textarea – prevent iOS auto-zoom ────────────────────── */
+@media (max-width: 767.98px) {
+  .mm-textarea { font-size: 1rem !important; }
+}
+
+/* ── 55. Form selects – no zoom on iOS ──────────────────────────── */
+@media (max-width: 767.98px) {
+  select.form-select { font-size: 1rem; }
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea { font-size: 1rem !important; }
+}
+
+/* ── 56. Tip box – full width ────────────────────────────────────── */
+@media (max-width: 575.98px) {
+  .tip-box { font-size: .8rem; border-radius: var(--radius-sm); }
+}
+
+/* ── 57. Interview progress bar label ───────────────────────────── */
+@media (max-width: 575.98px) {
+  .mm-progress-lg { height: 8px; }
+}
+
+/* ── 58. Company accordion – full width buttons ─────────────────── */
+@media (max-width: 575.98px) {
+  .accordion-button { font-size: .82rem; padding: .65rem .875rem; }
+  .accordion-body   { padding: .875rem; font-size: .875rem; }
+}
+
+/* ── 59. Coding leaderboard table – mobile widths ──────────────── */
+@media (max-width: 575.98px) {
+  .sub-table th:nth-child(3),
+  .sub-table td:nth-child(3) { display: none; } /* hide score on xs */
+}
+
+/* ── 60. Page transition – smooth for mobile ────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  .mm-card, .stat-card, .quick-action-card, .feature-card {
+    animation-duration: .25s;
+  }
+}

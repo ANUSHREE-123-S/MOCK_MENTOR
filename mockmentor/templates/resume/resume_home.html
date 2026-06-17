@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% block title %}Resume Analyzer – MockMentor{% endblock %}
+{% block content %}
+<div class="container py-3 py-md-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-9">
+
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <h3 class="fw-800 mb-0">📄 Resume Analyzer</h3>
+        <span class="badge bg-primary-subtle text-primary rounded-pill">AI-Powered</span>
+      </div>
+
+      <!-- Upload Card -->
+      <div class="mm-card mb-4">
+        <div class="mm-card-header">
+          <h5><i class="bi bi-cloud-upload me-2 text-primary"></i>
+            {% if resume %}Update Resume{% else %}Upload Resume{% endif %}
+          </h5>
+        </div>
+        <div class="p-3 p-md-4">
+          <form method="POST" action="{{ url_for('resume.upload_resume') }}"
+                enctype="multipart/form-data" id="resumeForm">
+            <div class="resume-drop-zone" id="dropZone"
+                 onclick="document.getElementById('resumeFile').click()">
+              <input type="file" name="resume" id="resumeFile" accept=".pdf,.txt"
+                     style="display:none" onchange="handleFileSelect(this)">
+              <i class="bi bi-file-earmark-pdf fs-1 text-primary mb-3 d-block"></i>
+              <h5 class="fw-700">Drop your resume here or click to browse</h5>
+              <p class="text-muted mb-3">Supports PDF and TXT files • Max 5MB</p>
+              <div id="selectedFile" class="selected-file-badge d-none"></div>
+            </div>
+            <div class="d-flex gap-3 mt-3">
+              <button type="submit" class="btn btn-primary rounded-pill px-4" id="uploadBtn" disabled>
+                <i class="bi bi-cpu me-2"></i>Analyse Resume
+              </button>
+              {% if resume %}
+              <form method="POST" action="{{ url_for('resume.delete_resume') }}" class="d-inline"
+                    onsubmit="return confirm('Delete your uploaded resume?')">
+                <button type="submit" class="btn btn-outline-danger rounded-pill">
+                  <i class="bi bi-trash me-1"></i>Delete Resume
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </form>
+          <div class="mt-3 p-3 bg-primary-subtle rounded-2">
+            <h6 class="fw-700 text-primary mb-2">What we analyse:</h6>
+            <div class="row g-2">
+              {% for item in ['Programming skills detection','Framework & library recognition','Database & cloud tech matching','Topic recommendations','Company fitment score','Preparation roadmap'] %}
+              <div class="col-12 col-sm-6">
+                <span class="text-muted small"><i class="bi bi-check-circle-fill text-success me-1"></i>{{ item }}</span>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% if resume and analysis %}
+      <!-- Analysis Results -->
+      <div class="row g-4">
+
+        <!-- Match Score -->
+        <div class="col-12 col-md-4 text-center">
+          <div class="mm-card text-center h-100">
+            <div class="p-4">
+              <div class="resume-score-circle mx-auto mb-3
+                {% if analysis.match_score >= 70 %}score-good{% elif analysis.match_score >= 40 %}score-avg{% else %}score-poor{% endif %}">
+                <span class="score-number">{{ analysis.match_score|int }}</span>
+                <span class="score-denom">%</span>
+              </div>
+              <h5 class="fw-700 mb-1">Resume Score</h5>
+              <p class="text-muted small mb-3">
+                {% if analysis.match_score >= 70 %}Strong profile — well prepared!
+                {% elif analysis.match_score >= 40 %}Good foundation — keep building.
+                {% else %}Needs more CS fundamentals.{% endif %}
+              </p>
+              <div class="text-muted small">
+                <i class="bi bi-calendar me-1"></i>Analysed on {{ resume.uploaded_at.strftime('%d %b %Y') if resume.uploaded_at else 'recently' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detected Skills -->
+        <div class="col-12 col-md-8 mt-3 mt-md-0">
+          <div class="mm-card h-100">
+            <div class="mm-card-header">
+              <h5><i class="bi bi-tags me-2 text-success"></i>Detected Skills ({{ skills|length }})</h5>
+            </div>
+            <div class="p-3">
+              {% if skills %}
+              {% set cats = skills | groupby('category') %}
+              {% for cat, skill_list in cats %}
+              <div class="mb-3">
+                <div class="fw-600 small text-muted mb-2">{{ cat }}</div>
+                <div class="d-flex flex-wrap gap-2">
+                  {% for sk in skill_list %}
+                  <span class="skill-tag">{{ sk.skill_name }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endfor %}
+              {% else %}
+              <p class="text-muted text-center py-3">No skills detected. Make sure your resume has clear skill sections.</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Recommended Topics -->
+        <div class="col-12 col-md-6">
+          <div class="mm-card h-100">
+            <div class="mm-card-header">
+              <h5><i class="bi bi-bookmark-check me-2 text-primary"></i>Recommended Topics</h5>
+            </div>
+            <div class="p-3">
+              {% if analysis.recommended_topics %}
+              {% for topic in analysis.recommended_topics.split(',') %}
+              {% set t = topic.strip() %}
+              {% if t %}
+              <div class="rec-topic-item">
+                <i class="bi bi-arrow-right-circle-fill text-primary"></i>
+                <div>
+                  <div class="fw-600 small">{{ t }}</div>
+                  <a href="{{ url_for('interview.start_interview') }}"
+                     class="text-primary small">Practice {{ t }} →</a>
+                </div>
+              </div>
+              {% endif %}
+              {% endfor %}
+              {% else %}
+              <p class="text-muted small py-3">No topic recommendations yet.</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Recommended Companies -->
+        <div class="col-md-6">
+          <div class="mm-card h-100">
+            <div class="mm-card-header">
+              <h5><i class="bi bi-buildings me-2 text-warning"></i>Companies That Match You</h5>
+            </div>
+            <div class="p-3">
+              {% if analysis.recommended_companies %}
+              {% for company in analysis.recommended_companies.split(',') %}
+              {% set c = company.strip() %}
+              {% if c %}
+              <div class="d-flex align-items-center justify-content-between mb-3 p-2 rounded-2" style="background:var(--bg)">
+                <span class="fw-600">{{ c }}</span>
+                <a href="{{ url_for('company.company_list') }}" class="btn btn-xs btn-outline-primary rounded-pill">Prep →</a>
+              </div>
+              {% endif %}
+              {% endfor %}
+              {% else %}
+              <p class="text-muted small py-3">Upload resume with more technical skills for company recommendations.</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Full Analysis Text -->
+        <div class="col-12">
+          <div class="mm-card">
+            <div class="mm-card-header">
+              <h5><i class="bi bi-file-text me-2 text-info"></i>Full Analysis Report</h5>
+            </div>
+            <div class="p-4">
+              <pre class="analysis-pre">{{ analysis.analysis_text }}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% elif resume %}
+      <!-- Resume uploaded but no analysis yet -->
+      <div class="mm-card">
+        <div class="empty-state py-5">
+          <i class="bi bi-hourglass-split fs-1 text-muted"></i>
+          <h5 class="mt-3">Analysis in progress...</h5>
+          <p class="text-muted">Re-upload your resume to trigger fresh analysis.</p>
+        </div>
+      </div>
+
+      {% else %}
+      <!-- No resume uploaded -->
+      <div class="mm-card">
+        <div class="empty-state py-5">
+          <i class="bi bi-file-earmark-person fs-1 text-muted"></i>
+          <h5 class="mt-3">No Resume Uploaded Yet</h5>
+          <p class="text-muted">Upload your resume above to get personalised preparation recommendations.</p>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function handleFileSelect(input) {
+  const file     = input.files[0];
+  const badge    = document.getElementById('selectedFile');
+  const uploadBtn= document.getElementById('uploadBtn');
+  if (file) {
+    badge.textContent = `📎 ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+    badge.classList.remove('d-none');
+    uploadBtn.disabled = false;
+    uploadBtn.innerHTML = '<i class="bi bi-cpu me-2"></i>Analyse Resume';
+  }
+}
+
+// Drag and drop
+const dropZone = document.getElementById('dropZone');
+if (dropZone) {
+  ['dragenter','dragover'].forEach(ev =>
+    dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('drop-active'); })
+  );
+  ['dragleave','drop'].forEach(ev =>
+    dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.remove('drop-active'); })
+  );
+  dropZone.addEventListener('drop', e => {
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      const input = document.getElementById('resumeFile');
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      input.files = dt.files;
+      handleFileSelect(input);
+    }
+  });
+}
+
+// Upload feedback
+document.getElementById('resumeForm').addEventListener('submit', () => {
+  const btn = document.getElementById('uploadBtn');
+  btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Analysing...';
+  btn.disabled = true;
+});
+</script>
+{% endblock %}

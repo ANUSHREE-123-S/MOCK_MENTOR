@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% block title %}{{ company.company_name }} Prep – MockMentor{% endblock %}
+{% block content %}
+<div class="container-fluid py-3 py-md-4 px-lg-4 px-3">
+
+  <!-- Company Header -->
+  <div class="company-hero mb-4">
+    <div class="company-hero-icon">{{ company.logo_emoji }}</div>
+    <div class="company-hero-body">
+      <h2 class="fw-800 mb-1">{{ company.company_name }}</h2>
+      <p class="text-muted mb-2">{{ company.description }}</p>
+      <div class="d-flex gap-3 flex-wrap">
+        <span class="badge bg-success-subtle text-success rounded-pill px-3">
+          <i class="bi bi-currency-rupee me-1"></i>{{ company.avg_package }}
+        </span>
+        <span class="badge rounded-pill px-3
+          {% if company.difficulty=='Easy'   %}bg-success-subtle text-success
+          {% elif company.difficulty=='Medium'%}bg-warning-subtle text-warning
+          {% else %}bg-danger-subtle text-danger{% endif %}">
+          {{ company.difficulty }} Level
+        </span>
+        <span class="badge bg-primary-subtle text-primary rounded-pill px-3">
+          <i class="bi bi-question-circle me-1"></i>{{ questions|length }} Questions
+        </span>
+      </div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{{ url_for('company.add_experience', company_id=company.company_id) }}"
+         class="btn btn-outline-primary rounded-pill btn-sm">
+        <i class="bi bi-plus me-1"></i>Share Experience
+      </a>
+      <a href="{{ url_for('company.all_experiences', company_id=company.company_id) }}"
+         class="btn btn-outline-secondary rounded-pill btn-sm">
+        <i class="bi bi-chat-quote me-1"></i>All Experiences
+      </a>
+    </div>
+  </div>
+
+  <!-- Interview Rounds -->
+  {% if rounds %}
+  <div class="mm-card mb-4">
+    <div class="mm-card-header">
+      <h5><i class="bi bi-diagram-3 me-2 text-primary"></i>Interview Rounds</h5>
+    </div>
+    <div class="rounds-timeline p-3">
+      {% for r in rounds %}
+      <div class="round-item">
+        <div class="round-number">{{ r.round_order }}</div>
+        <div class="round-body">
+          <div class="fw-700">{{ r.round_name }}</div>
+          <div class="text-muted small">{{ r.description }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="row g-4">
+    <!-- Questions -->
+    <div class="col-12 col-lg-8">
+      <div class="mm-card">
+        <div class="mm-card-header">
+          <h5><i class="bi bi-list-ul me-2 text-primary"></i>Interview Questions</h5>
+          <span class="badge bg-primary-subtle text-primary">{{ questions|length }} questions</span>
+        </div>
+
+        <!-- Filters -->
+        <div class="p-3 border-bottom">
+          <form method="GET" class="d-flex gap-2 flex-wrap align-items-end">
+            <select name="topic" class="form-select form-select-sm" style="max-width:160px">
+              <option value="">All Topics</option>
+              {% for t in topics %}
+              <option value="{{ t.topic_name }}" {% if t.topic_name==topic_filter %}selected{% endif %}>{{ t.topic_name }}</option>
+              {% endfor %}
+            </select>
+            <select name="difficulty" class="form-select form-select-sm" style="max-width:140px">
+              <option value="">All Difficulties</option>
+              {% for d in diffs %}
+              <option value="{{ d.difficulty_name }}" {% if d.difficulty_name==diff_filter %}selected{% endif %}>{{ d.difficulty_name }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-sm btn-primary rounded-pill">Filter</button>
+            <a href="{{ url_for('company.company_detail', company_id=company.company_id) }}" class="btn btn-sm btn-outline-secondary rounded-pill">Clear</a>
+          </form>
+        </div>
+
+        <div class="accordion" id="questionsAccordion">
+          {% for q in questions %}
+          <div class="accordion-item" style="border:none;border-bottom:1px solid var(--border-light)">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button"
+                      data-bs-toggle="collapse" data-bs-target="#q{{ q.cq_id }}">
+                <div class="d-flex align-items-center gap-2 flex-grow-1 me-3">
+                  <span class="badge rounded-pill
+                    {% if q.difficulty_name=='Easy'   %}bg-success-subtle text-success
+                    {% elif q.difficulty_name=='Medium'%}bg-warning-subtle text-warning
+                    {% else %}bg-danger-subtle text-danger{% endif %}" style="font-size:.7rem">
+                    {{ q.difficulty_name or '—' }}
+                  </span>
+                  {% if q.topic_name %}
+                  <span class="topic-badge">{{ q.topic_name }}</span>
+                  {% endif %}
+                  {% if q.round_name %}
+                  <span class="badge bg-secondary-subtle text-secondary rounded-pill" style="font-size:.7rem">{{ q.round_name }}</span>
+                  {% endif %}
+                  <span class="fw-500 small">{{ q.question_text[:80] }}{% if q.question_text|length > 80 %}…{% endif %}</span>
+                </div>
+                <span class="badge bg-info-subtle text-info rounded-pill ms-auto me-2" style="font-size:.7rem" title="Asked frequently">
+                  🔥 {{ q.frequency }}x
+                </span>
+              </button>
+            </h2>
+            <div id="q{{ q.cq_id }}" class="accordion-collapse collapse" data-bs-parent="#questionsAccordion">
+              <div class="accordion-body">
+                <p class="fw-600 mb-3">{{ q.question_text }}</p>
+                {% if q.sample_answer %}
+                <div class="answer-section">
+                  <div class="answer-label sample-answer-label">Sample Answer</div>
+                  <div class="answer-text">{{ q.sample_answer }}</div>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <div class="empty-state py-5">
+            <i class="bi bi-inbox fs-2 text-muted"></i>
+            <p class="mt-2">No questions found for this filter.</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Topic Strength + Experiences -->
+    <div class="col-12 col-lg-4">
+
+      <!-- Topic Strength Chart -->
+      <div class="mm-card mb-4">
+        <div class="mm-card-header">
+          <h5><i class="bi bi-bar-chart me-2 text-warning"></i>Topic Focus</h5>
+        </div>
+        <div class="p-3">
+          <canvas id="topicChart" style="max-height:200px"></canvas>
+          {% for ts in topic_strength %}
+          <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+            <span class="topic-badge">{{ ts.topic_name }}</span>
+            <span class="badge bg-primary-subtle text-primary rounded-pill">{{ ts.q_count }}Q</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Recent Experiences -->
+      <div class="mm-card">
+        <div class="mm-card-header">
+          <h5><i class="bi bi-chat-quote me-2 text-info"></i>Interview Experiences</h5>
+          <a href="{{ url_for('company.all_experiences', company_id=company.company_id) }}"
+             class="btn btn-sm btn-outline-info rounded-pill">All</a>
+        </div>
+        {% if experiences %}
+        {% for exp in experiences %}
+        <div class="exp-card border-bottom p-3">
+          <div class="d-flex justify-content-between align-items-start mb-1">
+            <span class="fw-700 small">{{ exp.title }}</span>
+            <span class="badge rounded-pill
+              {% if exp.result=='Selected' %}bg-success-subtle text-success
+              {% elif exp.result=='Rejected'%}bg-danger-subtle text-danger
+              {% else %}bg-secondary-subtle text-secondary{% endif %}" style="font-size:.7rem">
+              {{ exp.result }}
+            </span>
+          </div>
+          <p class="text-muted small mb-1" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">
+            {{ exp.experience }}
+          </p>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted" style="font-size:.72rem">by {{ exp.author }} · {{ exp.posted_on }}</span>
+            <span class="badge rounded-pill
+              {% if exp.difficulty=='Easy'   %}bg-success-subtle text-success
+              {% elif exp.difficulty=='Medium'%}bg-warning-subtle text-warning
+              {% else %}bg-danger-subtle text-danger{% endif %}" style="font-size:.65rem">
+              {{ exp.difficulty }}
+            </span>
+          </div>
+        </div>
+        {% endfor %}
+        <div class="p-3">
+          <a href="{{ url_for('company.add_experience', company_id=company.company_id) }}"
+             class="btn btn-sm btn-outline-primary w-100 rounded-pill">
+            <i class="bi bi-plus me-1"></i>Share Your Experience
+          </a>
+        </div>
+        {% else %}
+        <div class="empty-state py-4">
+          <i class="bi bi-chat-dots fs-2 text-muted"></i>
+          <p class="mt-2 small">No experiences yet.</p>
+          <a href="{{ url_for('company.add_experience', company_id=company.company_id) }}"
+             class="btn btn-sm btn-primary rounded-pill">Be the First!</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const TOPIC_LABELS = {{ topic_strength | map(attribute='topic_name') | list | tojson }};
+const TOPIC_COUNTS = {{ topic_strength | map(attribute='q_count') | list | tojson }};
+if (TOPIC_LABELS.length) {
+  new Chart(document.getElementById('topicChart'), {
+    type: 'bar',
+    data: {
+      labels: TOPIC_LABELS,
+      datasets: [{ label:'Questions', data: TOPIC_COUNTS,
+        backgroundColor:'rgba(26,115,232,0.7)', borderRadius:6, borderSkipped:false }]
+    },
+    options: {
+      indexAxis:'y', responsive:true,
+      plugins:{ legend:{ display:false } },
+      scales:{ x:{ beginAtZero:true, grid:{ color:'rgba(0,0,0,0.04)' } }, y:{ grid:{ display:false } } }
+    }
+  });
+}
+</script>
+{% endblock %}

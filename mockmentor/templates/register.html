@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Register – MockMentor{% endblock %}
+{% block content %}
+<div class="auth-wrapper px-3 px-md-0">
+    <div class="auth-card auth-card-wide">
+        <div class="auth-logo">🎓</div>
+        <h2 class="auth-title">Create Account</h2>
+        <p class="auth-sub">Start your smart interview preparation today</p>
+
+        <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label fw-600">Full Name *</label>
+                    <div class="input-group mm-input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input type="text" name="name" class="form-control" placeholder="Arjun Sharma" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-600">Email Address *</label>
+                    <div class="input-group mm-input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        <input type="email" name="email" class="form-control" placeholder="you@example.com" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-600">Password *</label>
+                    <div class="input-group mm-input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" name="password" id="pwd1" class="form-control" placeholder="Min. 6 characters" required>
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePwd('pwd1','eye1')">
+                            <i class="bi bi-eye" id="eye1"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-600">Confirm Password *</label>
+                    <div class="input-group mm-input-group">
+                        <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                        <input type="password" name="confirm_password" id="pwd2" class="form-control" placeholder="Repeat password" required>
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePwd('pwd2','eye2')">
+                            <i class="bi bi-eye" id="eye2"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-600">College / University *</label>
+                    <div class="input-group mm-input-group">
+                        <span class="input-group-text"><i class="bi bi-building"></i></span>
+                        <input type="text" name="college" class="form-control" placeholder="IIT Delhi" required>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-600">Skills (comma-separated)</label>
+                    <div class="input-group mm-input-group">
+                        <span class="input-group-text"><i class="bi bi-code-slash"></i></span>
+                        <input type="text" name="skills" class="form-control" placeholder="Python, DBMS, Data Structures">
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 btn-lg rounded-pill mt-4">
+                <i class="bi bi-person-plus me-2"></i>Create Account
+            </button>
+        </form>
+
+        <div class="auth-divider my-3"><span>Already have an account?</span></div>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary w-100 rounded-pill">Sign In</a>
+    </div>
+</div>
+<script>
+function togglePwd(id, iconId) {
+    const el = document.getElementById(id);
+    const icon = document.getElementById(iconId);
+    el.type = el.type === 'password' ? 'text' : 'password';
+    icon.className = el.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+}
+</script>
+{% endblock %}

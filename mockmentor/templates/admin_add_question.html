@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Add Question – MockMentor Admin{% endblock %}
+{% block content %}
+<div class="container py-3 py-md-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-7">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <a href="{{ url_for('admin.manage_questions') }}" class="btn btn-sm btn-outline-secondary rounded-pill">
+                    <i class="bi bi-arrow-left me-1"></i>Back
+                </a>
+                <h4 class="fw-800 mb-0">Add New Question</h4>
+            </div>
+
+            <div class="mm-card">
+                <div class="p-3 p-md-4">
+                    <form method="POST" action="{{ url_for('admin.add_question') }}">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-600">Topic *</label>
+                                <select name="topic_id" class="form-select" required>
+                                    <option value="">Select topic...</option>
+                                    {% for t in topics %}
+                                    <option value="{{ t.topic_id }}">{{ t.topic_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-600">Difficulty *</label>
+                                <select name="difficulty_id" class="form-select" required>
+                                    <option value="">Select difficulty...</option>
+                                    {% for d in difficulties %}
+                                    <option value="{{ d.difficulty_id }}">{{ d.difficulty_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-600">Question Text *</label>
+                                <textarea name="question_text" class="form-control mm-textarea" rows="4"
+                                          placeholder="Enter the interview question here..." required></textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-600">Sample Answer</label>
+                                <textarea name="sample_answer" class="form-control mm-textarea" rows="5"
+                                          placeholder="Provide a detailed sample/ideal answer. This is used for auto-scoring."></textarea>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    The system uses keywords from this answer to auto-score student responses.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="submit" class="btn btn-primary flex-grow-1 rounded-pill">
+                                <i class="bi bi-plus-circle me-2"></i>Add Question
+                            </button>
+                            <a href="{{ url_for('admin.manage_questions') }}"
+                               class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,345 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard – MockMentor{% endblock %}
+{% block content %}
+<div class="container-fluid py-3 py-md-4 px-lg-4 px-3">
+
+  <!-- Welcome Banner -->
+  <div class="welcome-banner mb-4">
+    <div>
+      <h3 class="mb-1">Welcome back, {{ candidate_name.split()[0] }}! 👋</h3>
+      <p class="mb-0 opacity-75">Smart Placement Prep Platform — Let's get you placed!</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{{ url_for('interview.start_interview') }}" class="btn btn-light rounded-pill px-3">
+        <i class="bi bi-play-fill me-1"></i>Mock Interview
+      </a>
+      <a href="{{ url_for('coding.coding_home') }}" class="btn btn-outline-light rounded-pill px-3">
+        <i class="bi bi-code-slash me-1"></i>Coding Round
+      </a>
+    </div>
+  </div>
+
+  <!-- 6 Stat Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="stat-card stat-card-blue text-center">
+        <div class="stat-icon mx-auto"><i class="bi bi-camera-video"></i></div>
+        <div class="stat-value">{{ total_interviews }}</div>
+        <div class="stat-label">Interviews</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="stat-card stat-card-green text-center">
+        <div class="stat-icon mx-auto"><i class="bi bi-graph-up-arrow"></i></div>
+        <div class="stat-value">{{ avg_score }}%</div>
+        <div class="stat-label">Avg Score</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="stat-card stat-card-yellow text-center">
+        <div class="stat-icon mx-auto"><i class="bi bi-star-fill"></i></div>
+        <div class="stat-value">{{ best_score }}%</div>
+        <div class="stat-label">Best Score</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="stat-card stat-card-purple text-center">
+        <div class="stat-icon mx-auto"><i class="bi bi-trophy-fill"></i></div>
+        <div class="stat-value">#{{ rank_position }}</div>
+        <div class="stat-label">Rank</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="stat-card stat-card-teal text-center">
+        <div class="stat-icon mx-auto"><i class="bi bi-code-slash"></i></div>
+        <div class="stat-value">{{ coding_stats.solved }}</div>
+        <div class="stat-label">Problems Solved</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="stat-card stat-card-rose text-center">
+        <div class="stat-icon mx-auto"><i class="bi bi-file-earmark-person"></i></div>
+        <div class="stat-value">{% if resume_uploaded and resume_analysis %}{{ resume_analysis.match_score }}%{% else %}—{% endif %}</div>
+        <div class="stat-label">Resume Score</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Interviews + Recommendations -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-5">
+      <div class="mm-card h-100">
+        <div class="mm-card-header">
+          <h5><i class="bi bi-clock-history me-2 text-primary"></i>Recent Interviews</h5>
+          <a href="{{ url_for('interview.interview_history') }}" class="btn btn-sm btn-outline-primary rounded-pill">All</a>
+        </div>
+        {% if recent_interviews %}
+        <div class="table-responsive">
+          <table class="table mm-table align-middle mb-0">
+            <thead><tr><th>Topic</th><th>Score</th><th>Date</th><th></th></tr></thead>
+            <tbody>
+            {% for iv in recent_interviews %}
+            <tr>
+              <td><span class="topic-badge">{{ iv.topic_name }}</span></td>
+              <td>
+                <div class="score-bar-wrap">
+                  <div class="score-bar" style="width:{{ iv.total_score }}%" data-score="{{ iv.total_score }}"></div>
+                  <span class="score-label">{{ iv.total_score }}%</span>
+                </div>
+              </td>
+              <td class="text-muted small">{{ iv.date_str }}</td>
+              <td><a href="{{ url_for('student.report', interview_id=iv.interview_id) }}" class="btn btn-xs btn-outline-primary"><i class="bi bi-eye"></i></a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty-state py-4">
+          <i class="bi bi-camera-video fs-1 text-muted"></i>
+          <p class="mt-2 mb-0"><a href="{{ url_for('interview.start_interview') }}">Start your first interview!</a></p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-lg-7">
+      <div class="mm-card h-100">
+        <div class="mm-card-header">
+          <h5><i class="bi bi-robot me-2 text-info"></i>Smart Recommendations</h5>
+          <span class="badge bg-info-subtle text-info rounded-pill">AI-Powered</span>
+        </div>
+        <div class="rec-scroll">
+        {% if recommendations %}
+          {% for rec in recommendations %}
+          <div class="rec-card-v2">
+            <div class="rec-icon-v2">{{ rec.icon }}</div>
+            <div class="rec-body-v2">
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="fw-700 small">{{ rec.title }}</span>
+                <span class="badge bg-{{ rec.badge_cls }}-subtle text-{{ rec.badge_cls }} rounded-pill" style="font-size:.65rem">{{ rec.badge }}</span>
+              </div>
+              <p class="text-muted small mb-1">{{ rec.text }}</p>
+              {% if rec.resources %}
+              <div class="rec-resources">
+                {% for r in rec.resources[:2] %}<span class="resource-chip">{{ r }}</span>{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state py-4">
+            <i class="bi bi-lightbulb fs-1 text-muted"></i>
+            <p class="mt-2">Complete an interview to get personalised recommendations!</p>
+          </div>
+        {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 3: Company Readiness + Weak Topics + Resume/Chart -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-4">
+      <div class="mm-card h-100">
+        <div class="mm-card-header">
+          <h5><i class="bi bi-buildings me-2 text-warning"></i>Company Readiness</h5>
+          <a href="{{ url_for('company.company_list') }}" class="btn btn-sm btn-outline-warning rounded-pill">Explore</a>
+        </div>
+        <div class="p-3">
+        {% for cr in company_readiness %}
+        <div class="company-readiness-item">
+          <span class="company-logo-sm">{{ cr.logo_emoji }}</span>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="fw-600 small">{{ cr.company_name }}</span>
+              <span class="small {% if (cr.readiness or 0) >= 70 %}text-success{% elif (cr.readiness or 0) >= 40 %}text-warning{% else %}text-danger{% endif %}">{{ cr.readiness or 0 }}%</span>
+            </div>
+            <div class="progress mm-progress">
+              <div class="progress-bar {% if (cr.readiness or 0) >= 70 %}bg-success{% elif (cr.readiness or 0) >= 40 %}bg-warning{% else %}bg-danger{% endif %}" style="width:{{ cr.readiness or 0 }}%"></div>
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <p class="text-muted small text-center py-3">Take interviews to see company readiness.</p>
+        {% endfor %}
+        <a href="{{ url_for('company.company_list') }}" class="btn btn-outline-warning w-100 rounded-pill mt-3 btn-sm">All Companies</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="mm-card h-100">
+        <div class="mm-card-header">
+          <h5><i class="bi bi-exclamation-triangle me-2 text-danger"></i>Weak Topics</h5>
+          <a href="{{ url_for('student.analytics') }}" class="btn btn-sm btn-outline-danger rounded-pill">Analytics</a>
+        </div>
+        <div class="p-3">
+        {% if weak_topics %}
+          {% for wt in weak_topics %}
+          <div class="weak-topic-item">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fw-600 small">{{ wt.topic_name }}</span>
+              <span class="badge bg-danger-subtle text-danger">{{ wt.avg_score }}%</span>
+            </div>
+            <div class="progress mm-progress">
+              <div class="progress-bar bg-danger" style="width:{{ wt.avg_score }}%"></div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state py-3 text-center">
+            <i class="bi bi-check-circle text-success fs-2"></i>
+            <p class="mt-2 mb-0 small text-muted">No weak topics detected!</p>
+          </div>
+        {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="mm-card mb-3">
+        <div class="mm-card-header"><h5><i class="bi bi-activity me-2 text-success"></i>Score Trend</h5></div>
+        <div class="p-3"><canvas id="miniTrendChart" height="110"></canvas></div>
+      </div>
+      <div class="mm-card">
+        <div class="mm-card-header"><h5><i class="bi bi-file-earmark-person me-2 text-primary"></i>Resume</h5></div>
+        <div class="p-3 text-center">
+          {% if resume_uploaded %}
+            <i class="bi bi-file-check text-success fs-2"></i>
+            {% if resume_analysis %}<div class="fw-700 text-primary fs-5 my-1">{{ resume_analysis.match_score }}% match</div>{% endif %}
+            <a href="{{ url_for('resume.resume_home') }}" class="btn btn-sm btn-outline-primary rounded-pill w-100">View Analysis</a>
+          {% else %}
+            <i class="bi bi-file-earmark-plus text-muted fs-2"></i>
+            <p class="small mt-1 mb-2 text-muted">No resume uploaded yet</p>
+            <a href="{{ url_for('resume.resume_home') }}" class="btn btn-sm btn-primary rounded-pill w-100">Upload Resume</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 4: Coding Stats + Activity Timeline -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-4">
+      <div class="mm-card">
+        <div class="mm-card-header">
+          <h5><i class="bi bi-code-square me-2" style="color:var(--teal)"></i>Coding Stats</h5>
+          <a href="{{ url_for('coding.coding_home') }}" class="btn btn-sm btn-outline-info rounded-pill">Practice</a>
+        </div>
+        <div class="p-3">
+          <div class="row g-2 mb-3 text-center">
+            <div class="col-4"><div class="coding-mini-val text-primary">{{ coding_stats.attempted }}</div><div class="coding-mini-label">Attempted</div></div>
+            <div class="col-4"><div class="coding-mini-val text-success">{{ coding_stats.solved }}</div><div class="coding-mini-label">Solved</div></div>
+            <div class="col-4"><div class="coding-mini-val text-warning">{{ coding_stats.avg_score }}%</div><div class="coding-mini-label">Avg</div></div>
+          </div>
+          <canvas id="codingDoughnut" height="160"></canvas>
+          <div class="d-flex gap-2 mt-3">
+            <a href="{{ url_for('coding.coding_home') }}" class="btn btn-sm btn-primary rounded-pill flex-grow-1"><i class="bi bi-play me-1"></i>Solve Problems</a>
+            <a href="{{ url_for('coding.coding_analytics') }}" class="btn btn-sm btn-outline-secondary rounded-pill"><i class="bi bi-bar-chart"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-8">
+      <div class="mm-card h-100">
+        <div class="mm-card-header"><h5><i class="bi bi-clock me-2 text-secondary"></i>Activity Timeline</h5></div>
+        <div class="p-3">
+        {% if timeline %}
+        <div class="timeline">
+          {% for item in timeline %}
+          <div class="timeline-item">
+            <div class="timeline-dot {% if item.type=='coding' %}tl-coding{% else %}tl-interview{% endif %}">
+              <i class="bi {% if item.type=='coding' %}bi-code-slash{% else %}bi-camera-video{% endif %}"></i>
+            </div>
+            <div class="timeline-content">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-600 small">{{ item.label }}</span>
+                <span class="text-muted small">{{ item.date_str }}</span>
+              </div>
+              <div class="d-flex align-items-center gap-2 mt-1">
+                <span class="badge {% if item.type=='coding' %}bg-info-subtle text-info{% else %}bg-primary-subtle text-primary{% endif %} rounded-pill" style="font-size:.7rem">{{ 'Coding' if item.type=='coding' else 'Interview' }}</span>
+                <span class="small {% if item.score >= 70 %}text-success{% elif item.score >= 40 %}text-warning{% else %}text-danger{% endif %}">{{ item.score }}%</span>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state py-4">
+          <i class="bi bi-clock-history fs-1 text-muted"></i>
+          <p class="mt-2">Your activity will appear here after your first interview or coding submission.</p>
+        </div>
+        {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <h5 class="fw-700 mb-3">Quick Actions</h5>
+  <div class="row g-3">
+    {% set actions = [
+      ('interview.start_interview','bi-play-circle-fill','primary','Mock Interview','Start a timed session'),
+      ('coding.coding_home','bi-code-slash','info','Coding Round','Practice problems'),
+      ('company.company_list','bi-buildings','warning','Companies','Company-wise prep'),
+      ('resume.resume_home','bi-file-earmark-person','danger','Resume Analyzer','Upload & analyse'),
+      ('student.analytics','bi-graph-up-arrow','success','Analytics','Performance insights'),
+      ('student.leaderboard','bi-trophy-fill','secondary','Leaderboard','Global ranking'),
+    ] %}
+    {% for route,icon,color,title,desc in actions %}
+    <div class="col-4 col-sm-6 col-md-4 col-xl-2">
+      <a href="{{ url_for(route) }}" class="quick-action-card text-decoration-none">
+        <div class="qa-icon bg-{{ color }}-subtle text-{{ color }}"><i class="bi {{ icon }}"></i></div>
+        <div class="qa-body">
+          <div class="fw-700 small">{{ title }}</div>
+          <div class="text-muted" style="font-size:.72rem">{{ desc }}</div>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function loadDashboardCharts() {
+  try {
+    const trendRes  = await fetch('/api/interview-trend');
+    const trendData = await trendRes.json();
+    const miniCtx   = document.getElementById('miniTrendChart');
+    if (trendData.labels && trendData.labels.length && miniCtx) {
+      new Chart(miniCtx, {
+        type: 'line',
+        data: { labels: trendData.labels, datasets: [{ data: trendData.scores,
+          borderColor:'#1a73e8', backgroundColor:'rgba(26,115,232,0.08)',
+          borderWidth:2, pointRadius:3, fill:true, tension:0.4 }] },
+        options: { responsive:true, plugins:{legend:{display:false}},
+          scales:{ y:{beginAtZero:true,max:100,grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:10}}},
+                   x:{grid:{display:false},ticks:{font:{size:9}}} } }
+      });
+    } else if (miniCtx) {
+      miniCtx.parentElement.innerHTML = '<p class="text-muted small text-center py-3">Take interviews to see your trend.</p>';
+    }
+
+    const codingRes  = await fetch('/coding/api/stats');
+    const codingData = await codingRes.json();
+    const doughCtx   = document.getElementById('codingDoughnut');
+    if (codingData.labels && codingData.labels.length && doughCtx) {
+      new Chart(doughCtx, {
+        type: 'doughnut',
+        data: { labels: codingData.labels,
+          datasets: [{ data: codingData.values,
+            backgroundColor:['#34a853','#fbbc04','#ea4335'],
+            borderWidth:3,
+            borderColor: document.documentElement.getAttribute('data-theme')==='dark'?'#1a1d27':'#ffffff' }] },
+        options: { responsive:true, cutout:'68%',
+          plugins:{ legend:{ position:'bottom', labels:{ padding:10, boxWidth:10, font:{size:11} } } } }
+      });
+    } else if (doughCtx) {
+      doughCtx.parentElement.innerHTML += '<p class="text-muted small text-center mt-2">Submit code to see stats.</p>';
+    }
+  } catch(e) { console.error('Dashboard chart error:', e); }
+}
+loadDashboardCharts();
+</script>
+{% endblock %}

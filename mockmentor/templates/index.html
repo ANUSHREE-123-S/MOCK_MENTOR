@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}MockMentor – Smart Interview Preparation{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-bg-pattern"></div>
+    <div class="container py-3 py-md-5">
+        <div class="row align-items-center min-vh-80 g-5">
+            <div class="col-lg-6">
+                <div class="hero-badge mb-3">🚀 AI-Powered Interview Prep</div>
+                <h1 class="hero-title">Ace Your Next<br><span class="text-gradient">Tech Interview</span></h1>
+                <p class="hero-subtitle">Practice mock interviews, track your performance, detect weak topics, and get personalized recommendations — all in one smart platform.</p>
+                <div class="d-flex gap-2 flex-column flex-sm-row flex-wrap mt-3 mt-md-4">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg rounded-pill px-4 w-sm-auto">
+                        <i class="bi bi-rocket me-2"></i>Start Free
+                    </a>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg rounded-pill px-4 w-sm-auto">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                    </a>
+                </div>
+                <div class="hero-stats mt-5">
+                    <div class="stat-item"><strong>500+</strong><span>Questions</span></div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item"><strong>10</strong><span>Topics</span></div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item"><strong>3</strong><span>Difficulty Levels</span></div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-card-grid">
+                    <div class="hero-card">
+                        <i class="bi bi-cpu text-primary fs-2"></i>
+                        <h6>Auto Scoring</h6>
+                        <p>AI scores your answers instantly</p>
+                    </div>
+                    <div class="hero-card hero-card-offset">
+                        <i class="bi bi-graph-up-arrow text-success fs-2"></i>
+                        <h6>Analytics</h6>
+                        <p>Track progress with rich charts</p>
+                    </div>
+                    <div class="hero-card">
+                        <i class="bi bi-trophy text-warning fs-2"></i>
+                        <h6>Leaderboard</h6>
+                        <p>Compete with peers nationwide</p>
+                    </div>
+                    <div class="hero-card hero-card-offset">
+                        <i class="bi bi-lightbulb text-danger fs-2"></i>
+                        <h6>Weak Detection</h6>
+                        <p>Find & fix knowledge gaps</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="features-section py-5">
+    <div class="container">
+        <div class="text-center mb-3 mb-md-5">
+            <h2 class="section-title">Everything You Need to Crack Interviews</h2>
+            <p class="section-sub">From practice to analytics — MockMentor has it all.</p>
+        </div>
+        <div class="row g-4">
+            {% set features = [
+                ('bi-lightning-charge', 'primary', 'Mock Interviews', 'Attend timed mock interviews with questions curated across 10 technical topics.'),
+                ('bi-bar-chart-line', 'success', 'Performance Analytics', 'Visual dashboards with topic-wise scores, accuracy metrics, and trend graphs.'),
+                ('bi-shield-exclamation', 'warning', 'Weak Topic Detection', 'System automatically identifies topics where you score below threshold.'),
+                ('bi-file-earmark-pdf', 'danger', 'PDF Reports', 'Download detailed performance reports as PDF after every interview.'),
+                ('bi-trophy', 'info', 'Leaderboard', 'See where you stand among all candidates on a live global ranking.'),
+                ('bi-clock-history', 'secondary', 'Interview History', 'Browse all past interviews with filters by topic and difficulty.'),
+            ] %}
+            {% for icon, color, title, desc in features %}
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon bg-{{ color }}-subtle text-{{ color }}">
+                        <i class="bi {{ icon }}"></i>
+                    </div>
+                    <h5>{{ title }}</h5>
+                    <p>{{ desc }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section py-5">
+    <div class="container">
+        <div class="cta-card text-center">
+            <h2>Ready to Start Preparing?</h2>
+            <p>Join hundreds of students who are already acing their tech interviews with MockMentor.</p>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg rounded-pill px-5 mt-3">
+                Create Free Account <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<footer class="mm-footer py-4 text-center">
+    <p class="mb-0 text-muted">© 2024 MockMentor · Built with Flask & MySQL · A DBMS Project</p>
+</footer>
+{% endblock %}
