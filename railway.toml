@@ -1,0 +1,13 @@
+# railway.toml  –  Railway.app configuration
+# Docs: https://docs.railway.app/reference/config-as-code
+# Deploy: Push repo to GitHub → connect in Railway dashboard → it reads this file.
+
+[build]
+builder = "nixpacks"           # Railway auto-detects Python and installs requirements.txt
+
+[deploy]
+startCommand = "gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 120"
+healthcheckPath = "/"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3

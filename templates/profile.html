@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Profile – MockMentor{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="mm-card">
+                <div class="mm-card-header">
+                    <h5><i class="bi bi-person-circle me-2 text-primary"></i>My Profile</h5>
+                </div>
+                <div class="p-4">
+                    <div class="text-center mb-4">
+                        <div class="profile-avatar mx-auto mb-3">
+                            {{ candidate.name[0].upper() if candidate.name else 'U' }}
+                        </div>
+                        <h4 class="fw-700">{{ candidate.name }}</h4>
+                        <p class="text-muted">{{ candidate.email }}</p>
+                        <p class="text-muted small">Member since {{ candidate.created_at.strftime('%B %Y') if candidate.created_at else '' }}</p>
+                    </div>
+
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label class="form-label fw-600">College / University</label>
+                            <input type="text" name="college" class="form-control"
+                                   value="{{ candidate.college or '' }}" placeholder="Your college name">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-600">Skills (comma-separated)</label>
+                            <input type="text" name="skills" class="form-control"
+                                   value="{{ candidate.skills or '' }}" placeholder="Python, DBMS, DSA">
+                            <div class="form-text">These help personalize your interview questions.</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill">
+                            <i class="bi bi-save me-2"></i>Save Changes
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

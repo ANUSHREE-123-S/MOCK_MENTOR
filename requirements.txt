@@ -1,0 +1,34 @@
+# ── Core framework ─────────────────────────────────────────────
+Flask==3.0.3
+Werkzeug==3.0.3
+
+# ── MySQL connector ────────────────────────────────────────────
+# mysqlclient is the C-based driver required by Flask-MySQLdb.
+# On Render/Railway it is installed from a pre-built wheel.
+# On GCP Cloud Run the Dockerfile installs libmysqlclient-dev first.
+Flask-MySQLdb==1.0.1
+mysqlclient==2.2.4
+
+# ── Production WSGI server ─────────────────────────────────────
+# Used by Render, Railway, and Cloud Run instead of Flask dev server.
+gunicorn==22.0.0
+
+# ── Environment variable loading ───────────────────────────────
+# Reads .env file in local development. No effect in production
+# where the platform injects env vars directly.
+python-dotenv==1.0.1
+
+# ── PDF generation (interview reports) ────────────────────────
+reportlab==4.2.2
+
+# ── Resume PDF text extraction ─────────────────────────────────
+PyPDF2==3.0.1
+
+# ── (Optional) Cloud object storage for resume uploads ─────────
+# Uncomment when deploying to cloud so uploads survive container restarts.
+# boto3==1.34.0            # AWS S3
+# google-cloud-storage==2.16.0   # GCP Cloud Storage
+
+# ── (Optional) Managed MySQL with SSL ──────────────────────────
+# Uncomment for PlanetScale, Aiven, or other managed MySQL services.
+# PyMySQL==1.1.0

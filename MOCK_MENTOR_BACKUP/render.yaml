@@ -1,0 +1,36 @@
+# render.yaml  –  Render.com "Infrastructure as Code" config
+# Docs: https://render.com/docs/blueprint-spec
+# Deploy: Connect your GitHub repo in Render dashboard → it reads this file automatically.
+
+services:
+  - type: web
+    name: mockmentor
+    env: python
+    region: singapore          # Change to: oregon / frankfurt / ohio
+    plan: free                 # Change to: starter / standard for production
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 120
+    healthCheckPath: /
+
+    # Environment variables – set values in Render dashboard (not here)
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true      # Render auto-generates a secure random value
+      - key: MYSQL_HOST
+        sync: false              # You fill this in the Render dashboard
+      - key: MYSQL_USER
+        sync: false
+      - key: MYSQL_PASSWORD
+        sync: false
+      - key: MYSQL_DB
+        value: mockmentor_db
+      - key: MYSQL_PORT
+        value: "3306"
+      - key: MYSQL_SSL
+        value: "1"               # Required for PlanetScale / Aiven
+      - key: UPLOAD_FOLDER
+        value: /tmp/mockmentor_uploads
+      - key: PORT
+        value: "10000"           # Render free tier uses port 10000

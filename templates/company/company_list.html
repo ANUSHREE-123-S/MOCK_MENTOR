@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Companies – MockMentor{% endblock %}
+{% block content %}
+<div class="container-fluid py-4 px-lg-4 px-3">
+
+  <div class="welcome-banner mb-4" style="background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);">
+    <div>
+      <h3 class="mb-1">🏢 Company-wise Preparation</h3>
+      <p class="mb-0 opacity-75">Targeted prep for {{ companies|length }} top tech companies</p>
+    </div>
+    <a href="{{ url_for('company.company_analytics') }}" class="btn btn-outline-light rounded-pill">
+      <i class="bi bi-bar-chart me-1"></i>Analytics
+    </a>
+  </div>
+
+  <!-- Filter by difficulty -->
+  <div class="d-flex gap-2 mb-4 flex-wrap">
+    <button class="btn btn-sm btn-outline-secondary rounded-pill active-diff" onclick="filterDiff('')">All</button>
+    <button class="btn btn-sm btn-outline-success rounded-pill" onclick="filterDiff('Easy')">🟢 Easy</button>
+    <button class="btn btn-sm btn-outline-warning rounded-pill" onclick="filterDiff('Medium')">🟡 Medium</button>
+    <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="filterDiff('Hard')">🔴 Hard / FAANG</button>
+  </div>
+
+  <div class="row g-4" id="companyGrid">
+  {% for c in companies %}
+  <div class="col-md-6 col-lg-4 col-xl-3 company-card-wrap" data-diff="{{ c.difficulty }}">
+    <div class="company-card h-100">
+      <div class="company-card-header">
+        <div class="company-emoji">{{ c.logo_emoji }}</div>
+        <div>
+          <div class="company-name">{{ c.company_name }}</div>
+          <span class="badge rounded-pill
+            {% if c.difficulty=='Easy'   %}bg-success-subtle text-success
+            {% elif c.difficulty=='Medium'%}bg-warning-subtle text-warning
+            {% else %}bg-danger-subtle text-danger{% endif %}">
+            {{ c.difficulty }}
+          </span>
+        </div>
+      </div>
+
+      <p class="text-muted small mb-3" style="min-height:2.5rem">{{ c.description }}</p>
+
+      <div class="company-meta mb-3">
+        <div class="company-meta-item">
+          <i class="bi bi-currency-rupee text-success"></i>
+          <span>{{ c.avg_package }}</span>
+        </div>
+        <div class="company-meta-item">
+          <i class="bi bi-question-circle text-primary"></i>
+          <span>{{ c.question_count }} questions</span>
+        </div>
+        <div class="company-meta-item">
+          <i class="bi bi-layers text-info"></i>
+          <span>{{ c.round_count }} rounds</span>
+        </div>
+        <div class="company-meta-item">
+          <i class="bi bi-chat-quote text-warning"></i>
+          <span>{{ c.experience_count }} experiences</span>
+        </div>
+      </div>
+
+      <a href="{{ url_for('company.company_detail', company_id=c.company_id) }}"
+         class="btn btn-primary w-100 rounded-pill">
+        <i class="bi bi-arrow-right-circle me-1"></i>Prepare for {{ c.company_name }}
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterDiff(diff) {
+  document.querySelectorAll('.company-card-wrap').forEach(card => {
+    card.style.display = (!diff || card.dataset.diff === diff) ? '' : 'none';
+  });
+  document.querySelectorAll('[onclick^="filterDiff"]').forEach(btn => btn.classList.remove('active-diff'));
+  event.target.classList.add('active-diff');
+}
+</script>
+{% endblock %}

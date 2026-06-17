@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Start Interview – MockMentor{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="mm-card">
+                <div class="mm-card-header">
+                    <h4><i class="bi bi-play-circle-fill text-primary me-2"></i>Configure Your Interview</h4>
+                </div>
+                <div class="p-4">
+                    <form method="POST" action="{{ url_for('interview.start_interview') }}">
+                        <!-- Topic Selection -->
+                        <div class="mb-4">
+                            <label class="form-label fw-700 fs-6">Select Topic</label>
+                            <div class="topic-grid">
+                                {% for topic in topics %}
+                                <input type="radio" name="topic_id" id="topic_{{ topic.topic_id }}"
+                                       value="{{ topic.topic_id }}" class="d-none topic-radio" required>
+                                <label for="topic_{{ topic.topic_id }}" class="topic-option">
+                                    {{ topic.topic_name }}
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Difficulty Selection -->
+                        <div class="mb-4">
+                            <label class="form-label fw-700 fs-6">Select Difficulty</label>
+                            <div class="d-flex gap-3 flex-wrap">
+                                {% for d in difficulties %}
+                                <input type="radio" name="difficulty_id" id="diff_{{ d.difficulty_id }}"
+                                       value="{{ d.difficulty_id }}" class="d-none diff-radio" required>
+                                <label for="diff_{{ d.difficulty_id }}"
+                                       class="diff-option diff-{{ d.difficulty_name|lower }}">
+                                    {% if d.difficulty_name == 'Easy' %}🟢
+                                    {% elif d.difficulty_name == 'Medium' %}🟡
+                                    {% else %}🔴{% endif %}
+                                    {{ d.difficulty_name }}
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Interview Info -->
+                        <div class="info-box mb-4">
+                            <div class="info-row">
+                                <i class="bi bi-question-circle text-primary"></i>
+                                <span><strong>5 questions</strong> per interview session</span>
+                            </div>
+                            <div class="info-row">
+                                <i class="bi bi-clock text-warning"></i>
+                                <span>30-second timer per question</span>
+                            </div>
+                            <div class="info-row">
+                                <i class="bi bi-cpu text-success"></i>
+                                <span>Auto-scored using keyword matching</span>
+                            </div>
+                            <div class="info-row">
+                                <i class="bi bi-file-earmark-pdf text-danger"></i>
+                                <span>PDF report generated on completion</span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill">
+                            <i class="bi bi-play-fill me-2"></i>Start Interview Now
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

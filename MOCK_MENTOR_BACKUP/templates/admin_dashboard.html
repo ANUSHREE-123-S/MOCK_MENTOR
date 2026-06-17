@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard – MockMentor{% endblock %}
+{% block content %}
+<div class="container-fluid py-4 px-4">
+    <div class="welcome-banner mb-4" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
+        <div>
+            <h3 class="mb-1">Admin Panel 🛡️</h3>
+            <p class="mb-0 opacity-75">Welcome, {{ admin_name }}. Here's an overview of MockMentor.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.manage_questions') }}" class="btn btn-light btn-sm rounded-pill">Manage Questions</a>
+            <a href="{{ url_for('admin.manage_candidates') }}" class="btn btn-outline-light btn-sm rounded-pill">View Candidates</a>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card stat-card-blue">
+                <div class="stat-icon"><i class="bi bi-people"></i></div>
+                <div class="stat-value">{{ total_students }}</div>
+                <div class="stat-label">Total Students</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card stat-card-green">
+                <div class="stat-icon"><i class="bi bi-question-circle"></i></div>
+                <div class="stat-value">{{ total_questions }}</div>
+                <div class="stat-label">Total Questions</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card stat-card-yellow">
+                <div class="stat-icon"><i class="bi bi-camera-video"></i></div>
+                <div class="stat-value">{{ total_interviews }}</div>
+                <div class="stat-label">Interviews Held</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card stat-card-purple">
+                <div class="stat-icon"><i class="bi bi-graph-up"></i></div>
+                <div class="stat-value">{{ avg_score_all }}%</div>
+                <div class="stat-label">Platform Avg Score</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Top Performers -->
+        <div class="col-lg-6">
+            <div class="mm-card">
+                <div class="mm-card-header">
+                    <h5><i class="bi bi-trophy me-2 text-warning"></i>Top 5 Performers</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table mm-table align-middle">
+                        <thead><tr><th>Rank</th><th>Student</th><th>Score</th><th>Interviews</th></tr></thead>
+                        <tbody>
+                        {% for s in top_students %}
+                        <tr>
+                            <td>
+                                {% if s.rank_position == 1 %}🥇
+                                {% elif s.rank_position == 2 %}🥈
+                                {% elif s.rank_position == 3 %}🥉
+                                {% else %}#{{ s.rank_position }}{% endif %}
+                            </td>
+                            <td>
+                                <div class="fw-600">{{ s.name }}</div>
+                                <small class="text-muted">{{ s.college }}</small>
+                            </td>
+                            <td><strong class="text-success">{{ s.average_score }}%</strong></td>
+                            <td>{{ s.total_interviews }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-muted text-center">No data yet</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Topic Stats -->
+        <div class="col-lg-6">
+            <div class="mm-card">
+                <div class="mm-card-header">
+                    <h5><i class="bi bi-collection me-2 text-info"></i>Questions per Topic</h5>
+                    <a href="{{ url_for('admin.add_question') }}" class="btn btn-sm btn-primary rounded-pill">+ Add Question</a>
+                </div>
+                {% for ts in topic_stats %}
+                <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                    <span class="topic-badge">{{ ts.topic_name }}</span>
+                    <span class="badge bg-primary-subtle text-primary rounded-pill">{{ ts.q_count }} questions</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Recent Interviews -->
+        <div class="col-12">
+            <div class="mm-card">
+                <div class="mm-card-header">
+                    <h5><i class="bi bi-clock-history me-2"></i>Recent Interview Activity</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table mm-table align-middle">
+                        <thead><tr><th>Candidate</th><th>Topic</th><th>Score</th><th>Date</th></tr></thead>
+                        <tbody>
+                        {% for iv in recent_ivs %}
+                        <tr>
+                            <td class="fw-600">{{ iv.name }}</td>
+                            <td><span class="topic-badge">{{ iv.topic_name }}</span></td>
+                            <td>
+                                <strong class="{% if iv.total_score >= 70 %}text-success{% elif iv.total_score >= 40 %}text-warning{% else %}text-danger{% endif %}">
+                                    {{ iv.total_score }}%
+                                </strong>
+                            </td>
+                            <td class="text-muted small">{{ iv.date_str }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted">No interviews yet</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Topic Form -->
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="mm-card">
+                <div class="mm-card-header"><h5><i class="bi bi-tags me-2"></i>Add New Topic</h5></div>
+                <form method="POST" action="{{ url_for('admin.add_topic') }}" class="p-3">
+                    <div class="input-group">
+                        <input type="text" name="topic_name" class="form-control" placeholder="e.g. Machine Learning">
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+// Admin chart
+async function loadAdminChart() {
+    const res = await fetch('/api/admin/stats');
+    const data = await res.json();
+    if (!data.labels || !data.labels.length) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.id = 'adminChart'; canvas.height = 220;
+    document.querySelector('.row.g-4').insertAdjacentElement('beforebegin', canvas);
+
+    new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels: data.labels,
+            datasets: [{ label: 'Avg Score by Topic', data: data.scores,
+                backgroundColor: 'rgba(26,115,232,0.7)', borderRadius: 6 }]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } },
+                   plugins: { legend: { display: false } } }
+    });
+}
+loadAdminChart();
+</script>
+{% endblock %}
+{% endblock %}

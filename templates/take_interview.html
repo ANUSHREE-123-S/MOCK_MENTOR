@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block title %}Interview – MockMentor{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <!-- Progress Header -->
+            <div class="interview-header mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-700 text-primary">Question {{ q_number }} of {{ total_q }}</span>
+                    <div class="timer-badge" id="timerBadge">
+                        <i class="bi bi-clock me-1"></i>
+                        <span id="timerDisplay">30</span>s
+                    </div>
+                </div>
+                <div class="progress mm-progress-lg">
+                    <div class="progress-bar bg-primary" id="progressBar"
+                         style="width: {{ (q_number / total_q * 100)|int }}%"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-1">
+                    <small class="text-muted">Progress: {{ (q_number / total_q * 100)|int }}%</small>
+                    <small class="text-muted">Interview #{{ interview_id }}</small>
+                </div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="mm-card question-card mb-4">
+                <div class="question-number-badge">Q{{ q_number }}</div>
+                <h4 class="question-text">{{ question.question_text }}</h4>
+            </div>
+
+            <!-- Answer Form -->
+            <div class="mm-card">
+                <div class="mm-card-header">
+                    <h5><i class="bi bi-pencil-square me-2 text-primary"></i>Your Answer</h5>
+                    <small class="text-muted">Be clear and concise. Use keywords.</small>
+                </div>
+                <div class="p-4">
+                    <form method="POST" action="{{ url_for('interview.take_interview', interview_id=interview_id) }}"
+                          id="answerForm">
+                        <input type="hidden" name="question_id" value="{{ question.question_id }}">
+                        <input type="hidden" name="time_taken" id="timeTaken" value="0">
+
+                        <textarea name="answer" id="answerBox" class="form-control mm-textarea"
+                                  rows="6" placeholder="Type your answer here...
+
+Tip: Include key technical terms and concepts for better scoring."></textarea>
+
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg flex-grow-1 rounded-pill">
+                                <i class="bi bi-arrow-right-circle me-2"></i>
+                                {% if q_number == total_q %}Finish Interview{% else %}Next Question{% endif %}
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-lg rounded-pill"
+                                    onclick="skipQuestion()">
+                                <i class="bi bi-skip-forward me-1"></i>Skip
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="tip-box mt-3">
+                <i class="bi bi-lightbulb-fill text-warning me-2"></i>
+                <strong>Tip:</strong> Include relevant keywords, definitions, and examples in your answer for higher scores.
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+// ── Timer ─────────────────────────────────────────────────────
+const TIME_LIMIT = 30;  // seconds per question
+let elapsed = 0;
+let timerInterval;
+
+const timerDisplay = document.getElementById('timerDisplay');
+const timerBadge   = document.getElementById('timerBadge');
+const timeTaken    = document.getElementById('timeTaken');
+const answerForm   = document.getElementById('answerForm');
+
+timerInterval = setInterval(() => {
+    elapsed++;
+    const remaining = TIME_LIMIT - elapsed;
+    timerDisplay.textContent = remaining;
+    timeTaken.value = elapsed;
+
+    if (remaining <= 10) {
+        timerBadge.classList.add('timer-warning');
+    }
+    if (remaining <= 0) {
+        clearInterval(timerInterval);
+        timerBadge.classList.add('timer-danger');
+        // Auto-submit when time is up
+        setTimeout(() => answerForm.submit(), 1000);
+    }
+}, 1000);
+
+// ── Skip Question ─────────────────────────────────────────────
+function skipQuestion() {
+    clearInterval(timerInterval);
+    document.querySelector('textarea[name="answer"]').value = '';
+    answerForm.submit();
+}
+
+// ── Stop timer on submit ──────────────────────────────────────
+answerForm.addEventListener('submit', () => {
+    clearInterval(timerInterval);
+    timeTaken.value = elapsed;
+});
+</script>
+{% endblock %}
+{% endblock %}

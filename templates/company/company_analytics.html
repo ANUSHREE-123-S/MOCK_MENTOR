@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block title %}Company Analytics – MockMentor{% endblock %}
+{% block content %}
+<div class="container-fluid py-4 px-lg-4 px-3">
+
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h3 class="fw-800 mb-1">🏢 Company Analytics</h3>
+      <p class="text-muted mb-0">Most asked topics and company-wise difficulty breakdown</p>
+    </div>
+    <a href="{{ url_for('company.company_list') }}" class="btn btn-outline-secondary rounded-pill">
+      <i class="bi bi-arrow-left me-1"></i>Companies
+    </a>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <!-- Top topics across all companies -->
+    <div class="col-lg-5">
+      <div class="mm-card h-100">
+        <div class="mm-card-header">
+          <h5><i class="bi bi-fire me-2 text-danger"></i>Most Asked Topics (All Companies)</h5>
+        </div>
+        <div class="p-3">
+          <canvas id="topicChart" height="260"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAANG-specific topics -->
+    <div class="col-lg-4">
+      <div class="mm-card h-100">
+        <div class="mm-card-header">
+          <h5><i class="bi bi-stars me-2 text-warning"></i>FAANG Focus Areas</h5>
+        </div>
+        <div class="p-3">
+          {% for t in faang_topics %}
+          <div class="mb-3">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="fw-600 small">{{ t.topic_name }}</span>
+              <span class="badge bg-danger-subtle text-danger rounded-pill">{{ t.freq }} questions</span>
+            </div>
+            <div class="progress mm-progress">
+              <div class="progress-bar bg-danger"
+                   style="width:{{ ((t.freq / (faang_topics[0].freq or 1)) * 100)|int }}%"></div>
+            </div>
+          </div>
+          {% else %}
+          <p class="text-muted text-center py-4">No FAANG data yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Company difficulty distribution -->
+    <div class="col-lg-3">
+      <div class="mm-card h-100">
+        <div class="mm-card-header">
+          <h5><i class="bi bi-pie-chart me-2 text-info"></i>Difficulty Mix</h5>
+        </div>
+        <div class="p-3 text-center">
+          <canvas id="diffChart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Company Table -->
+  <div class="mm-card">
+    <div class="mm-card-header">
+      <h5><i class="bi bi-table me-2"></i>All Companies Overview</h5>
+    </div>
+    <div class="table-responsive">
+      <table class="table mm-table align-middle">
+        <thead>
+          <tr><th>Company</th><th>Difficulty</th><th>Package</th><th>Questions</th><th>Experiences</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+        {% for c in company_stats %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <span class="fs-5">{{ c.logo_emoji }}</span>
+              <span class="fw-700">{{ c.company_name }}</span>
+            </div>
+          </td>
+          <td>
+            <span class="badge rounded-pill
+              {% if c.difficulty=='Easy'   %}bg-success-subtle text-success
+              {% elif c.difficulty=='Medium'%}bg-warning-subtle text-warning
+              {% else %}bg-danger-subtle text-danger{% endif %}">
+              {{ c.difficulty }}
+            </span>
+          </td>
+          <td class="text-muted small">{{ c.avg_package }}</td>
+          <td><span class="badge bg-primary-subtle text-primary rounded-pill">{{ c.q_count }}</span></td>
+          <td><span class="badge bg-info-subtle text-info rounded-pill">{{ c.exp_count }}</span></td>
+          <td>
+            <a href="{{ url_for('company.company_detail', company_id=loop.index) }}"
+               class="btn btn-sm btn-outline-primary rounded-pill">Prep →</a>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const TL = {{ top_topics | map(attribute='topic_name') | list | tojson }};
+const TV = {{ top_topics | map(attribute='freq') | list | tojson }};
+const DL = ['Easy','Medium','Hard'];
+const DV = [
+  {{ company_stats | selectattr('difficulty','equalto','Easy')   | list | length }},
+  {{ company_stats | selectattr('difficulty','equalto','Medium') | list | length }},
+  {{ company_stats | selectattr('difficulty','equalto','Hard')   | list | length }}
+];
+
+if (TL.length) {
+  new Chart(document.getElementById('topicChart'), {
+    type:'bar',
+    data:{ labels:TL, datasets:[{ label:'Questions', data:TV,
+      backgroundColor:'rgba(26,115,232,0.75)', borderRadius:6, borderSkipped:false }] },
+    options:{ indexAxis:'y', responsive:true,
+      plugins:{ legend:{display:false} },
+      scales:{ x:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.04)'}}, y:{grid:{display:false}} } }
+  });
+}
+new Chart(document.getElementById('diffChart'), {
+  type:'doughnut',
+  data:{ labels:DL, datasets:[{ data:DV,
+    backgroundColor:['#34a853','#fbbc04','#ea4335'],
+    borderWidth:3, borderColor: document.documentElement.getAttribute('data-theme')==='dark'?'#1a1d27':'#fff' }] },
+  options:{ responsive:true, cutout:'60%',
+    plugins:{ legend:{ position:'bottom', labels:{ padding:12, boxWidth:12 } } } }
+});
+</script>
+{% endblock %}

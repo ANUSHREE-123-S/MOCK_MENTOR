@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% block title %}Coding Round – MockMentor{% endblock %}
+{% block content %}
+<div class="container-fluid py-4 px-lg-4 px-3">
+
+  <!-- Header -->
+  <div class="welcome-banner mb-4" style="background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);">
+    <div>
+      <h3 class="mb-1">💻 Coding Round Practice</h3>
+      <p class="mb-0 opacity-75">Company-style coding challenges — keyword-matched auto-grading</p>
+    </div>
+    <a href="{{ url_for('coding.coding_analytics') }}" class="btn btn-outline-light rounded-pill">
+      <i class="bi bi-bar-chart me-1"></i>My Stats
+    </a>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="stat-card stat-card-blue text-center">
+        <div class="stat-icon mx-auto"><i class="bi bi-collection"></i></div>
+        <div class="stat-value">{{ problems|length }}</div>
+        <div class="stat-label">Total Problems</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card stat-card-green text-center">
+        <div class="stat-icon mx-auto"><i class="bi bi-check2-circle"></i></div>
+        <div class="stat-value">{{ my_stats.solved }}</div>
+        <div class="stat-label">Solved</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card stat-card-yellow text-center">
+        <div class="stat-icon mx-auto"><i class="bi bi-send"></i></div>
+        <div class="stat-value">{{ my_stats.attempted }}</div>
+        <div class="stat-label">Attempted</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card stat-card-purple text-center">
+        <div class="stat-icon mx-auto"><i class="bi bi-percent"></i></div>
+        <div class="stat-value">{% if my_stats.attempted > 0 %}{{ ((my_stats.solved / my_stats.attempted) * 100)|int }}%{% else %}0%{% endif %}</div>
+        <div class="stat-label">Acceptance Rate</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="mm-card mb-4">
+    <form method="GET" class="p-3">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label small fw-600">Search Problem</label>
+          <div class="input-group mm-input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" name="search" class="form-control" placeholder="Title or tag..." value="{{ search }}">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-600">Difficulty</label>
+          <select name="difficulty" class="form-select">
+            <option value="">All Difficulties</option>
+            <option value="Easy"   {% if diff_filter=='Easy'   %}selected{% endif %}>🟢 Easy</option>
+            <option value="Medium" {% if diff_filter=='Medium' %}selected{% endif %}>🟡 Medium</option>
+            <option value="Hard"   {% if diff_filter=='Hard'   %}selected{% endif %}>🔴 Hard</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-600">Company</label>
+          <select name="company" class="form-select">
+            <option value="">All Companies</option>
+            {% for c in companies %}
+            <option value="{{ c.company_name }}" {% if c.company_name==company_filter %}selected{% endif %}>
+              {{ c.logo_emoji }} {{ c.company_name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-primary rounded-pill flex-grow-1">Filter</button>
+          <a href="{{ url_for('coding.coding_home') }}" class="btn btn-outline-secondary rounded-pill px-3">✕</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Problem List -->
+  <div class="mm-card">
+    <div class="mm-card-header">
+      <h5><i class="bi bi-list-ul me-2"></i>Problems
+        <span class="badge bg-primary-subtle text-primary ms-2">{{ problems|length }}</span>
+      </h5>
+    </div>
+    <div class="table-responsive">
+      <table class="table mm-table align-middle" id="problemTable">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th>Problem</th>
+            <th>Difficulty</th>
+            <th>Tags</th>
+            <th>Company</th>
+            <th>Acceptance</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for p in problems %}
+        <tr>
+          <td class="text-muted small">{{ loop.index }}</td>
+          <td><span class="fw-600">{{ p.title }}</span></td>
+          <td>
+            <span class="badge rounded-pill
+              {% if p.difficulty_name=='Easy'    %}bg-success-subtle text-success
+              {% elif p.difficulty_name=='Medium' %}bg-warning-subtle text-warning
+              {% else %}bg-danger-subtle text-danger{% endif %}">
+              {% if p.difficulty_name=='Easy' %}🟢{% elif p.difficulty_name=='Medium' %}🟡{% else %}🔴{% endif %}
+              {{ p.difficulty_name or '—' }}
+            </span>
+          </td>
+          <td>
+            {% if p.topic_tags %}
+              {% for tag in p.topic_tags.split(',')[:2] %}
+              <span class="badge bg-secondary-subtle text-secondary rounded-pill me-1" style="font-size:.68rem">{{ tag.strip() }}</span>
+              {% endfor %}
+            {% else %}<span class="text-muted small">—</span>{% endif %}
+          </td>
+          <td>
+            {% if p.company_name %}
+            <span style="font-size:.82rem">{{ p.logo_emoji }} {{ p.company_name }}</span>
+            {% else %}<span class="text-muted small">General</span>{% endif %}
+          </td>
+          <td class="text-muted small" style="font-family:'JetBrains Mono',monospace">
+            {% if p.total_count and p.total_count > 0 %}
+              {{ ((p.accepted_count / p.total_count) * 100)|int }}%
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if p.my_status == 'Accepted' %}
+              <span class="badge bg-success-subtle text-success rounded-pill"><i class="bi bi-check-circle me-1"></i>Solved</span>
+            {% elif p.my_status %}
+              <span class="badge bg-warning-subtle text-warning rounded-pill"><i class="bi bi-arrow-repeat me-1"></i>Attempted</span>
+            {% else %}
+              <span class="badge bg-secondary-subtle text-secondary rounded-pill">Unsolved</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{{ url_for('coding.coding_problem', cq_id=p.cq_id) }}"
+               class="btn btn-sm {% if p.my_status=='Accepted' %}btn-outline-success{% else %}btn-primary{% endif %} rounded-pill">
+              {% if p.my_status=='Accepted' %}Review{% else %}Solve{% endif %}
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted py-5"><i class="bi bi-inbox fs-2 d-block mb-2"></i>No problems found.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

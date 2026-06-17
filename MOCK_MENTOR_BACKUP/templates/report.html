@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block title %}Interview Report – MockMentor{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-800 mb-1">Interview Report</h3>
+            <p class="text-muted mb-0">{{ interview.topic_name }} · {{ interview.date_str }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('student.download_pdf', interview_id=interview.interview_id) }}"
+               class="btn btn-danger rounded-pill">
+                <i class="bi bi-file-earmark-pdf me-1"></i>Download PDF
+            </a>
+            <a href="{{ url_for('student.dashboard') }}" class="btn btn-outline-secondary rounded-pill">
+                <i class="bi bi-arrow-left me-1"></i>Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Score Summary -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="score-circle-card">
+                <div class="score-circle {% if interview.total_score >= 70 %}score-good{% elif interview.total_score >= 40 %}score-avg{% else %}score-poor{% endif %}">
+                    <span class="score-number">{{ interview.total_score|int }}</span>
+                    <span class="score-denom">/100</span>
+                </div>
+                <div class="score-label mt-2">Total Score</div>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="mm-card h-100">
+                <div class="p-4">
+                    <div class="row g-3">
+                        {% if feedback_detail %}
+                        <div class="col-4">
+                            <div class="sub-score-item">
+                                <div class="sub-score-label">Technical</div>
+                                <div class="sub-score-value text-primary">{{ feedback_detail.technical_score|int }}%</div>
+                                <div class="progress mm-progress mt-1">
+                                    <div class="progress-bar bg-primary" style="width:{{ feedback_detail.technical_score }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="sub-score-item">
+                                <div class="sub-score-label">Communication</div>
+                                <div class="sub-score-value text-success">{{ feedback_detail.communication_score|int }}%</div>
+                                <div class="progress mm-progress mt-1">
+                                    <div class="progress-bar bg-success" style="width:{{ feedback_detail.communication_score }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="sub-score-item">
+                                <div class="sub-score-label">Confidence</div>
+                                <div class="sub-score-value text-warning">{{ feedback_detail.confidence_score|int }}%</div>
+                                <div class="progress mm-progress mt-1">
+                                    <div class="progress-bar bg-warning" style="width:{{ feedback_detail.confidence_score }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if interview.feedback %}
+                    <div class="feedback-box mt-3">
+                        <i class="bi bi-chat-quote me-2 text-primary"></i>
+                        <span>{{ interview.feedback }}</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex gap-4 mt-3">
+                        <div class="meta-item">
+                            <i class="bi bi-clock text-muted me-1"></i>
+                            <small class="text-muted">Duration: {{ interview.interview_duration // 60 }}m {{ interview.interview_duration % 60 }}s</small>
+                        </div>
+                        <div class="meta-item">
+                            <i class="bi bi-question-circle text-muted me-1"></i>
+                            <small class="text-muted">{{ responses|length }} questions answered</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question-wise Breakdown -->
+    <div class="mm-card">
+        <div class="mm-card-header">
+            <h5><i class="bi bi-list-check me-2 text-primary"></i>Question-wise Breakdown</h5>
+        </div>
+        {% for r in responses %}
+        <div class="response-item {% if not loop.last %}border-bottom{% endif %}">
+            <div class="response-header">
+                <div class="q-num">Q{{ loop.index }}</div>
+                <div class="response-question">{{ r.question_text }}</div>
+                <div class="response-score
+                    {% if r.score >= 7 %}score-badge-good
+                    {% elif r.score >= 4 %}score-badge-avg
+                    {% else %}score-badge-poor{% endif %}">
+                    {{ r.score }}/10
+                </div>
+            </div>
+
+            {% if r.user_answer %}
+            <div class="response-body">
+                <div class="answer-section">
+                    <div class="answer-label your-answer-label">Your Answer</div>
+                    <div class="answer-text">{{ r.user_answer or 'No answer provided' }}</div>
+                </div>
+                {% if r.sample_answer %}
+                <div class="answer-section mt-2">
+                    <div class="answer-label sample-answer-label">Sample Answer</div>
+                    <div class="answer-text text-muted">{{ r.sample_answer }}</div>
+                </div>
+                {% endif %}
+                <div class="d-flex align-items-center gap-2 mt-2">
+                    <small class="text-muted"><i class="bi bi-clock me-1"></i>Time: {{ r.time_taken }}s</small>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{{ url_for('interview.start_interview') }}" class="btn btn-primary btn-lg rounded-pill px-5">
+            <i class="bi bi-play-fill me-2"></i>Start New Interview
+        </a>
+    </div>
+</div>
+{% endblock %}

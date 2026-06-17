@@ -1,0 +1,6 @@
+Flask==3.0.0
+Flask-MySQLdb==1.0.1
+Werkzeug==3.0.1
+reportlab==4.1.0
+mysqlclient==2.2.4
+PyPDF2==3.0.1
